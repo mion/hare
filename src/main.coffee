@@ -25,17 +25,15 @@ class CardList
 		null
 	cluster: () ->
 		points = @cards.map (card) -> [card.x, card.y]
-		print("points", points)
 		clusterMaker.data(points)
 		clusters = clusterMaker.clusters()
-		print("clusters", clusters)
+		console.log("clusters", clusters)
 		for cluster in clusters
 			cardsInside = []
 			for pair in cluster.points
 				c = @cardAt(pair[0], pair[1])
 				cardsInside.push(c) unless _.isNil(c)
 			tasks = cardsInside.map (card) -> card.task
-			print("tasks:", tasks)
 			bigCard = @add(tasks.join("; "))
 			bigCard.x = cluster.centroid[0]
 			bigCard.y = cluster.centroid[1]
@@ -61,7 +59,7 @@ class Workplace extends Layer
 		@animate
 			backgroundColor: "#F9F9F9"
 
-workplace = new Workplace
+# workplace = new Workplace
 
 class Button extends Layer
 	constructor: (icon, button) ->
@@ -113,6 +111,24 @@ class ExplorationSlider extends SliderComponent
 
 leftmost = (layers) ->
 	_.head(_.sortBy(layers, (l) -> l.x))
+
+class ClusterView extends Layer
+	constructor: (@cluster) ->
+		min_x = _.head(_.sortBy(@cluster.points, (point) -> point[0]))[0]
+		max_x = _.head(_.reverse(_.sortBy(@cluster.points, (point) -> point[0])))[0]
+		min_y = _.head(_.sortBy(@cluster.points, (point) -> point[1]))[1]
+		max_y = _.head(_.reverse(_.sortBy(@cluster.points, (point) -> point[1])))[1]
+		height = max_y - min_y
+		width = max_x - min_x
+		x = @cluster.centroid[0] - (width / 2)
+		y = @cluster.centroy[0] - (height / 2)
+		super
+			x: x
+			y: y
+			width: width
+			height: height
+			backgroundColor: "#EEDDDD"
+		@sendToBack()
 
 class Card extends Layer
 	instersectionArea: (layer) ->
@@ -178,10 +194,10 @@ class Card extends Layer
 		@draggable.enabled = true
 		@draggable.momentum = false
 		@onDragEnd ->
-			if @isInside(workplace) && workplace.active
-				@animate
-					x: Align.center
-					y: Align.center
+			# if @isInside(workplace) && workplace.active
+			# 	@animate
+			# 		x: Align.center
+			# 		y: Align.center
 			key = @task.toLowerCase().split(" ").join("_")
 			localStorage.setItem("cardpos:#{key}", "#{@x},#{@y}")
 
@@ -189,7 +205,7 @@ class Card extends Layer
 # 			@destroy()
 
 		@onLongPressEnd =>
-			return
+			# return
 			newWidth = @width * (1.25)
 			newHeight = @height * (1.25)
 			@animate
