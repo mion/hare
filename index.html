@@ -39,7 +39,18 @@
 
 	</head>
 	<body>
+		<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script> -->
+		<script type="text/javascript" src="jquery-1.12.4.min.js"></script>
 		<script src="framer/framer.js"></script>
 		<script src="app.js"></script>
+		<script type="text/javascript">
+			$("body").keydown(function () {
+				$.ajax({
+					url: "http://localhost:4567/recompile"
+				}).done(function () {
+					window.location.reload();
+				});
+			});
+		</script>
 	</body>
 </html>
