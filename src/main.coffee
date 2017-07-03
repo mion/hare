@@ -1,229 +1,105 @@
+#############################################
+# Imports
+#############################################
 clusterMaker = require "clusters"
 
-tasksQueue = [
-	#"put cards in a list upon adding",
-	#"auto re-order cards upon drag end",
-]
+#############################################
+# Helpers
+#############################################
+_centerize = (overLayer, underLayer) ->
+  paddingX = (underLayer.width - overLayer.width) / 2
+  paddingY = (underLayer.height - overLayer.height) / 2
+  overLayer.x = underLayer.x + paddingX
+  overLayer.y = underLayer.y + paddingY
 
-class CardList
-	constructor: () ->
-		@cards = []
-	add: (task) ->
-		card = new Card(task, this)
-		@cards.push(card)
-		card.onDoubleTap =>
-			@remove(card)
-		return card
-	remove: (card) ->
-		pos = @cards.indexOf(card)
-		@cards.splice(pos, 1)
-		card.destroy()
-	cardAt: (x, y) ->
-		for card in @cards
-			if card.x == x && card.y == y
-				return card
-		null
-	cluster: () ->
-		points = @cards.map (card) -> [card.x, card.y]
-		clusterMaker.data(points)
-		clusters = clusterMaker.clusters()
-		console.log("clusters", clusters)
-		for cluster in clusters
-			cardsInside = []
-			for pair in cluster.points
-				c = @cardAt(pair[0], pair[1])
-				cardsInside.push(c) unless _.isNil(c)
-			tasks = cardsInside.map (card) -> card.task
-			bigCard = @add(tasks.join("; "))
-			bigCard.x = cluster.centroid[0]
-			bigCard.y = cluster.centroid[1]
-			cardsInside.forEach (card) => @remove(card)
+_centerizedPoint = (overLayer, underLayer) ->
+  paddingX = (underLayer.width - overLayer.width) / 2
+  paddingY = (underLayer.height - overLayer.height) / 2
+  {x: underLayer.x + paddingX, y: underLayer.y + paddingY}
 
-class Workplace extends Layer
-	constructor: () ->
-		super
-			width: Screen.width / 2
-			height: Screen.height / 2
-			x: Align.center
-			y: Align.center
-			backgroundColor: "#F9F9F9"
-		@active = false
-		@onLongPress ->
-			if @active then @deactivate() else @activate()
-	activate: () ->
-		@animate
-			backgroundColor: "#AAA"
-		@active = true
-	deactivate: () ->
-		@active = false
-		@animate
-			backgroundColor: "#F9F9F9"
+#############################################
+# Singleton Classes
+#############################################
+class Cell extends Layer # FIXME
+  constructor: (parent, sqm, i, j, backgroundColor) ->
+    super
+      parent: parent
+      x: i * sqm
+      y: i * sqm
+      width: sqm
+      height: sqm
+      backgroundColor: backgroundColor
 
-# workplace = new Workplace
+class Grid extends Layer
+  constructor: (@sqm) ->
+    super
+      x: 0
+      y: 0
+      width: Canvas.width
+      height: Canvas.height
+      backgroundColor: '#333333'
+    @rows = Math.ceil(@height / @sqm)
+    @columns = Math.ceil(@width / @sqm)
+    @cells = {}
+    for i in [0..@rows - 1] by 1
+      @cells[i] = {}
+      for j in [0..@columns - 1] by 1
+        @cells[i][j] = null
+    for j in [0..@columns - 1] by 1
+      for i in [0..@rows - 1] by 1
+        bgColor = if (i + j * @columns) % 2 == 0
+          '#f0f0f0'
+        else
+          '#f6f6f6'
+        # FIXME cell = new Cell(this, @sqm, i, j, bgColor)
+        cell = new Layer
+          parent: this
+          x: i * @sqm
+          y: j * @sqm
+          width: @sqm
+          height: @sqm
+          backgroundColor: bgColor
+        @cells[i][j] = cell
+  cellAt: (pos) ->
+    @cells[pos.i][pos.j]
+  place: (thing) ->
+    @addChild(thing)
+    _centerize(thing, @cellAt(thing.pos))
 
-class Button extends Layer
-	constructor: (icon, button) ->
-		BUTTON_SIZE = 75
-		ICON_SIZE = 30
-		PADDING = 15
-		super
-			width: BUTTON_SIZE
-			height: BUTTON_SIZE
-			x: if _.isNil(button) then Screen.width - BUTTON_SIZE - PADDING else button.x - BUTTON_SIZE - PADDING
-			y: PADDING
-			borderRadius: 15
-			backgroundColor: "#EEE"
-		@iconLayer = new Layer
-			parent: this
-			width: ICON_SIZE
-			height: ICON_SIZE
-			x: Align.center
-			y: Align.center
-			image: "images/icons/#{icon}.svg"
+#############################################
+# Classes
+#############################################
+class Position
+  constructor: (@i, @j) ->
 
-addButton = new Button("plus")
-clusterButton = new Button("box", addButton)
-cardList = new CardList()
+class Movement
+  constructor: (@grid, @creature, @pos) ->
+  perform: () ->
+    @creature.animate
+      point: _centerizedPoint(@creature, @grid.cellAt(@pos))
 
-addButton.onTap ->
-	task = if _.isEmpty(tasksQueue)
-		prompt("What's the task?")
-	else
-		tasksQueue.pop()
-	if task != null
-		cardList.add(task)
+class Creature extends Layer
+  constructor: (@displayName, @pos) ->
+    @health = 100
+    @energy = 100
+    @hunger = 100
+    @thirst = 100
+    @sex = 100
+    @pleasure = 100
+    super
+      name: 'creature_' + @displayName.toLowerCase().split(' ').join('_')
+      width: 50
+      height: 50
+      backgroundColor: '#0099ff'
+      borderRadius: 12
 
-clusterButton.onTap ->
-	cardList.cluster()
+#############################################
+# main
+#############################################
+$grid = new Grid(70)
 
-class ExplorationSlider extends SliderComponent
-	constructor: () ->
-		super
-			x: Align.center
-			y: 50
-			min: 0.0
-			max: 1.0
-		@knob.draggable.momentum = false
-		@knob.onDragEnd =>
-			print(@value)
+foo = new Creature("Foo", new Position(1, 2))
+$grid.place(foo)
 
-#slider = new ExplorationSlider
-
-leftmost = (layers) ->
-	_.head(_.sortBy(layers, (l) -> l.x))
-
-class ClusterView extends Layer
-	constructor: (@cluster) ->
-		min_x = _.head(_.sortBy(@cluster.points, (point) -> point[0]))[0]
-		max_x = _.head(_.reverse(_.sortBy(@cluster.points, (point) -> point[0])))[0]
-		min_y = _.head(_.sortBy(@cluster.points, (point) -> point[1]))[1]
-		max_y = _.head(_.reverse(_.sortBy(@cluster.points, (point) -> point[1])))[1]
-		height = max_y - min_y
-		width = max_x - min_x
-		x = @cluster.centroid[0] - (width / 2)
-		y = @cluster.centroy[0] - (height / 2)
-		super
-			x: x
-			y: y
-			width: width
-			height: height
-			backgroundColor: "#EEDDDD"
-		@sendToBack()
-
-class Card extends Layer
-	instersectionArea: (layer) ->
-	isInside: (layer) ->
-		(@x > layer.x) && (@x < layer.x + layer.width) && (@y > layer.y) && (@y < layer.y + layer.height)
-	constructor: (@task, @list) ->
-		key = @task.toLowerCase().split(" ").join("_")
-		pos_str = localStorage.getItem("cardpos:#{key}")
-		if pos_str != null
-			@xInit = parseInt(pos_str.split(",")[0])
-			@yInit = parseInt(pos_str.split(",")[1])
-		else
-			@xInit = (Canvas.width / 2)
-			@yInit = (Canvas.height / 2)
-		super
-			x: @xInit
-			y: @yInit
-			width: 100
-			height: 100
-			borderRadius: 8
-			backgroundColor: "#FFFFCC"
-			shadowX: 0
-			shadowY: 3
-			shadowBlur: 6
-			shadowSpread: 0
-			shadowColor: "rgba(0,0,0,0.25)"
-
-		text = new TextLayer
-			parent: this
-			text: @task
-			fontSize: 12
-			fontFamily: "Inconsolata-g"
-			color: "black"
-
-		PADDING = 15
-		@width = text.width + (2 * PADDING)
-		@height = text.height + (2 * PADDING)
-		text.x = Align.center
-		text.y = Align.center
-
-		newWidth = @width * (1.25)
-		newHeight = @height * (1.25)
-		_damping = 0.19 #slider.value
-		grow = new Animation this,
-			width: newWidth
-			height: newHeight
-			x: @xInit
-			y: @yInit
-			options:
-				curve: Spring(damping: _damping)
-				time: 0.5
-		grow.start()
-
-		stay = new Animation text,
-			x: ((newWidth / 2) - (text.width / 2))
-			y: ((newHeight / 2) - (text.height / 2))
-			options:
-				curve: Spring(damping: _damping)
-				time: 0.5
-
-		stay.start()
-
-		@draggable.enabled = true
-		@draggable.momentum = false
-		@onDragEnd ->
-			# if @isInside(workplace) && workplace.active
-			# 	@animate
-			# 		x: Align.center
-			# 		y: Align.center
-			key = @task.toLowerCase().split(" ").join("_")
-			localStorage.setItem("cardpos:#{key}", "#{@x},#{@y}")
-
-# 		@onDoubleTap =>
-# 			@destroy()
-
-		@onLongPressEnd =>
-			# return
-			newWidth = @width * (1.25)
-			newHeight = @height * (1.25)
-			@animate
-				width: newWidth
-				height: newHeight
-			text.animate
-				x: ((newWidth / 2) - (text.width / 2))
-				y: ((newHeight / 2) - (text.height / 2))
-		@onTap ->
-			@bringToFront()
-
-		@onPinch ->
-			return
-			newWidth = @width * (1 / 1.25)
-			newHeight = @height * (1 / 1.25)
-			@animate
-				width: newWidth
-				height: newHeight
-			text.animate
-				x: ((newWidth / 2) - (text.width / 2))
-				y: ((newHeight / 2) - (text.height / 2))
+action = new Movement($grid, foo, new Position(1, 3))
+action.perform()
