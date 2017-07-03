@@ -18,7 +18,7 @@ _centerizedPoint = (overLayer, underLayer) ->
   {x: underLayer.x + paddingX, y: underLayer.y + paddingY}
 
 #############################################
-# Singleton Classes
+# Grid
 #############################################
 class Cell extends Layer # FIXME
   constructor: (parent, sqm, i, j, backgroundColor) ->
@@ -62,21 +62,43 @@ class Grid extends Layer
         @cells[i][j] = cell
   cellAt: (pos) ->
     @cells[pos.i][pos.j]
+  isWithinBounds: (pos) ->
+    (0 <= pos.i) && (pos.i <= (@rows - 1)) && (0 <= pos.j) && (pos.j <= (@columns - 1))
   place: (thing) ->
     @addChild(thing)
     _centerize(thing, @cellAt(thing.pos))
 
 #############################################
-# Classes
+# Creature
 #############################################
 class Position
   constructor: (@i, @j) ->
 
+  next: (direction) ->
+    if direction == "up"
+      return new Position(@i, @j - 1)
+    else if direction == "down"
+      return new Position(@i, @j + 1)
+    else if direction == "left"
+      return new Position(@i - 1, @j)
+    else if direction == "right"
+      return new Position(@i + 1, @j)
+    else
+      return null
+
 class Movement
-  constructor: (@grid, @creature, @pos) ->
+  constructor: (@grid, @creature, @targetPos) ->
+  isValid: () ->
+    @grid.isWithinBounds(@targetPos)
   perform: () ->
-    @creature.animate
-      point: _centerizedPoint(@creature, @grid.cellAt(@pos))
+    return false if @creature.isAnimating
+    return false unless @isValid()
+    anim = new Animation @creature,
+      point: _centerizedPoint(@creature, @grid.cellAt(@targetPos))
+    anim.start()
+    anim.on Events.AnimationEnd, =>
+      @creature.pos = new Position(@targetPos.i, @targetPos.j)
+    return true
 
 class Creature extends Layer
   constructor: (@displayName, @pos) ->
@@ -94,12 +116,21 @@ class Creature extends Layer
       borderRadius: 12
 
 #############################################
-# main
+# Simuation
 #############################################
-$grid = new Grid(70)
+class Simulation
+  constructor: () ->
+    @grid = new Grid(70)
+  update: () ->
+    console.log('[*] Updating')
+    dir = Utils.randomChoice(["up", "down", "left", "right"])
+    action = new Movement(@grid, @foo, @foo.pos.next(dir))
+    action.perform()
+  start: () ->
+    @foo = new Creature("Foo", new Position(1, 2))
+    @grid.place(@foo)
 
-foo = new Creature("Foo", new Position(1, 2))
-$grid.place(foo)
-
-action = new Movement($grid, foo, new Position(1, 3))
-action.perform()
+simulation = new Simulation
+simulation.start()
+Utils.interval 1, ->
+  simulation.update()
