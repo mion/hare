@@ -147,6 +147,12 @@
   Card = (function(superClass) {
     extend(Card, superClass);
 
+    Card.prototype.GROW_FACTOR = 1.25;
+
+    Card.prototype.MAX_SIZE = 13;
+
+    Card.prototype.MIN_SIZE = 1;
+
     Card.prototype.isInside = function(layer) {
       return (this.x > layer.x) && (this.x < layer.x + layer.width) && (this.y > layer.y) && (this.y < layer.y + layer.height);
     };
@@ -163,6 +169,7 @@
         this.xInit = Canvas.width / 2;
         this.yInit = Canvas.height / 2;
       }
+      this.pointsEstimate = Card.prototype.MIN_SIZE;
       Card.__super__.constructor.call(this, {
         x: this.xInit,
         y: this.yInit,
@@ -230,30 +237,60 @@
 
     Card.prototype.grow = function() {
       var newHeight, newWidth;
-      newWidth = this.width * 1.25;
-      newHeight = this.height * 1.25;
+      if (this.pointsEstimate === Card.prototype.MAX_SIZE) {
+        return this.pointsEstimate;
+      }
+      newWidth = this.width * Card.prototype.GROW_FACTOR;
+      newHeight = this.height * Card.prototype.GROW_FACTOR;
       this.animate({
         width: newWidth,
         height: newHeight
       });
-      return this.text.animate({
+      this.text.animate({
         x: (newWidth / 2) - (this.text.width / 2),
         y: (newHeight / 2) - (this.text.height / 2)
       });
+      if (this.pointsEstimate === 1) {
+        this.pointsEstimate = 2;
+      } else if (this.pointsEstimate === 2) {
+        this.pointsEstimate = 3;
+      } else if (this.pointsEstimate === 3) {
+        this.pointsEstimate = 5;
+      } else if (this.pointsEstimate === 5) {
+        this.pointsEstimate = 8;
+      } else if (this.pointsEstimate === 8) {
+        this.pointsEstimate = this.MAX_SIZE;
+      }
+      return this.pointsEstimate;
     };
 
     Card.prototype.shrink = function() {
       var newHeight, newWidth;
-      newWidth = this.width * (1 / 1.25);
-      newHeight = this.height * (1 / 1.25);
+      if (this.pointsEstimate === Card.prototype.MIN_SIZE) {
+        return this.pointsEstimate;
+      }
+      newWidth = this.width * (1 / Card.prototype.GROW_FACTOR);
+      newHeight = this.height * (1 / this.GROW_FACTOR);
       this.animate({
         width: newWidth,
         height: newHeight
       });
-      return this.text.animate({
+      this.text.animate({
         x: (newWidth / 2) - (this.text.width / 2),
         y: (newHeight / 2) - (this.text.height / 2)
       });
+      if (this.pointsEstimate === 2) {
+        this.pointsEstimate = this.MIN_SIZE;
+      } else if (this.pointsEstimate === 3) {
+        this.pointsEstimate = 2;
+      } else if (this.pointsEstimate === 5) {
+        this.pointsEstimate = 3;
+      } else if (this.pointsEstimate === 8) {
+        this.pointsEstimate = 5;
+      } else if (this.pointsEstimate === 13) {
+        this.pointsEstimate = 8;
+      }
+      return this.pointsEstimate;
     };
 
     return Card;
