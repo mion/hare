@@ -1,44 +1,11 @@
 clusterMaker = require "clusters"
 
-tasksQueue = [
-	#"put cards in a list upon adding",
-	#"auto re-order cards upon drag end",
-]
+tasksQueue = []
+console.log(JSON)
 
-class CardList
-	constructor: () ->
-		@cards = []
-	add: (task) ->
-		card = new Card(task, this)
-		@cards.push(card)
-		card.onDoubleTap =>
-			@remove(card)
-		return card
-	remove: (card) ->
-		pos = @cards.indexOf(card)
-		@cards.splice(pos, 1)
-		card.destroy()
-	cardAt: (x, y) ->
-		for card in @cards
-			if card.x == x && card.y == y
-				return card
-		null
-	cluster: () ->
-		points = @cards.map (card) -> [card.x, card.y]
-		clusterMaker.data(points)
-		clusters = clusterMaker.clusters()
-		console.log("clusters", clusters)
-		for cluster in clusters
-			cardsInside = []
-			for pair in cluster.points
-				c = @cardAt(pair[0], pair[1])
-				cardsInside.push(c) unless _.isNil(c)
-			tasks = cardsInside.map (card) -> card.task
-			bigCard = @add(tasks.join("; "))
-			bigCard.x = cluster.centroid[0]
-			bigCard.y = cluster.centroid[1]
-			cardsInside.forEach (card) => @remove(card)
-
+######################################################
+# classes
+######################################################
 class Workplace extends Layer
 	constructor: () ->
 		super
@@ -58,8 +25,6 @@ class Workplace extends Layer
 		@active = false
 		@animate
 			backgroundColor: "#F9F9F9"
-
-# workplace = new Workplace
 
 class Button extends Layer
 	constructor: (icon, button) ->
@@ -81,21 +46,6 @@ class Button extends Layer
 			y: Align.center
 			image: "images/icons/#{icon}.svg"
 
-addButton = new Button("plus")
-clusterButton = new Button("box", addButton)
-cardList = new CardList()
-
-addButton.onTap ->
-	task = if _.isEmpty(tasksQueue)
-		prompt("What's the task?")
-	else
-		tasksQueue.pop()
-	if task != null
-		cardList.add(task)
-
-clusterButton.onTap ->
-	cardList.cluster()
-
 class ExplorationSlider extends SliderComponent
 	constructor: () ->
 		super
@@ -106,11 +56,6 @@ class ExplorationSlider extends SliderComponent
 		@knob.draggable.momentum = false
 		@knob.onDragEnd =>
 			print(@value)
-
-#slider = new ExplorationSlider
-
-leftmost = (layers) ->
-	_.head(_.sortBy(layers, (l) -> l.x))
 
 class ClusterView extends Layer
 	constructor: (@cluster) ->
@@ -131,15 +76,16 @@ class ClusterView extends Layer
 		@sendToBack()
 
 class Card extends Layer
-	instersectionArea: (layer) ->
 	isInside: (layer) ->
 		(@x > layer.x) && (@x < layer.x + layer.width) && (@y > layer.y) && (@y < layer.y + layer.height)
 	constructor: (@task, @list) ->
-		key = @task.toLowerCase().split(" ").join("_")
-		pos_str = localStorage.getItem("cardpos:#{key}")
-		if pos_str != null
-			@xInit = parseInt(pos_str.split(",")[0])
-			@yInit = parseInt(pos_str.split(",")[1])
+		# key = @task.toLowerCase().split(" ").join("_")
+		# pos_str = localStorage.getItem("cardpos:#{key}")
+		# if pos_str != null
+		if typeof @task == 'object'
+			@xInit = @task.x #parseInt(pos_str.split(",")[0])
+			@yInit = @task.y #parseInt(pos_str.split(",")[1])
+			@task = @task.text
 		else
 			@xInit = (Canvas.width / 2)
 			@yInit = (Canvas.height / 2)
@@ -162,6 +108,8 @@ class Card extends Layer
 			fontSize: 12
 			fontFamily: "Inconsolata-g"
 			color: "black"
+
+		@text = text
 
 		PADDING = 15
 		@width = text.width + (2 * PADDING)
@@ -198,32 +146,100 @@ class Card extends Layer
 			# 	@animate
 			# 		x: Align.center
 			# 		y: Align.center
-			key = @task.toLowerCase().split(" ").join("_")
-			localStorage.setItem("cardpos:#{key}", "#{@x},#{@y}")
+			# key = @task.toLowerCase().split(" ").join("_")
+			# localStorage.setItem("cardpos:#{key}", "#{@x},#{@y}")
 
-# 		@onDoubleTap =>
-# 			@destroy()
+	toObject: () ->
+		{text: @task, x: @x, y: @y}
 
-		@onLongPressEnd =>
-			# return
-			newWidth = @width * (1.25)
-			newHeight = @height * (1.25)
-			@animate
-				width: newWidth
-				height: newHeight
-			text.animate
-				x: ((newWidth / 2) - (text.width / 2))
-				y: ((newHeight / 2) - (text.height / 2))
-		@onTap ->
-			@bringToFront()
+	grow: () ->
+		newWidth = @width * (1.25)
+		newHeight = @height * (1.25)
+		@animate
+			width: newWidth
+			height: newHeight
+		@text.animate
+			x: ((newWidth / 2) - (@text.width / 2))
+			y: ((newHeight / 2) - (@text.height / 2))
 
-		@onPinch ->
-			return
-			newWidth = @width * (1 / 1.25)
-			newHeight = @height * (1 / 1.25)
-			@animate
-				width: newWidth
-				height: newHeight
-			text.animate
-				x: ((newWidth / 2) - (text.width / 2))
-				y: ((newHeight / 2) - (text.height / 2))
+	shrink: () ->
+		newWidth = @width * (1 / 1.25)
+		newHeight = @height * (1 / 1.25)
+		@animate
+			width: newWidth
+			height: newHeight
+		@text.animate
+			x: ((newWidth / 2) - (@text.width / 2))
+			y: ((newHeight / 2) - (@text.height / 2))
+
+class CardList
+	constructor: () ->
+		@cards = []
+	save: () ->
+		console.log "saving #{@cards.length} cards..."
+		card_objects = _.map @cards, (card) -> card.toObject()
+		json_string = JSON.stringify(card_objects)
+		localStorage.setItem('card_objects', json_string)
+	restore: () ->
+		return false if _.isNil(localStorage.getItem('card_objects'))
+		card_objects = JSON.parse(localStorage.getItem('card_objects'))
+		console.log "restoring #{card_objects.length} cards..."
+		@cards = _.map card_objects, (obj) => new Card(obj, this)
+	add: (task) ->
+		card = new Card(task, this)
+		@cards.push(card)
+		card.onDoubleTap =>
+			#@remove(card)
+			card.grow()
+		card.onLongPress =>
+			card.shrink() unless card.draggable.isDragging
+		card.onDragEnd =>
+			@save()
+		return card
+	remove: (card) ->
+		pos = @cards.indexOf(card)
+		@cards.splice(pos, 1)
+		card.destroy()
+	cardAt: (x, y) ->
+		for card in @cards
+			if card.x == x && card.y == y
+				return card
+		null
+	cluster: () ->
+		points = @cards.map (card) -> [card.x, card.y]
+		clusterMaker.data(points)
+		clusters = clusterMaker.clusters()
+		console.log("clusters", clusters)
+		for cluster in clusters
+			cardsInside = []
+			for pair in cluster.points
+				c = @cardAt(pair[0], pair[1])
+				cardsInside.push(c) unless _.isNil(c)
+			tasks = cardsInside.map (card) -> card.task
+			bigCard = @add(tasks.join("; "))
+			bigCard.x = cluster.centroid[0]
+			bigCard.y = cluster.centroid[1]
+			cardsInside.forEach (card) => @remove(card)
+
+######################################################
+# main
+######################################################
+addButton = new Button("plus")
+clusterButton = new Button("box", addButton)
+cardList = new CardList()
+cardList.restore()
+
+addButton.onTap ->
+	task = if _.isEmpty(tasksQueue)
+		prompt("What's the task?")
+	else
+		tasksQueue.pop()
+	if task != null
+		cardList.add(task)
+
+clusterButton.onTap ->
+	cardList.cluster()
+
+
+leftmost = (layers) ->
+	_.head(_.sortBy(layers, (l) -> l.x))
