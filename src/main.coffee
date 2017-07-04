@@ -3,6 +3,9 @@ clusterMaker = require "clusters"
 tasksQueue = []
 console.log(JSON)
 
+bug = (things) ->
+	_.forEach things, (thing) -> console.log(thing)
+
 ######################################################
 # classes
 ######################################################
@@ -78,7 +81,7 @@ class ClusterView extends Layer
 class Card extends Layer
 	isInside: (layer) ->
 		(@x > layer.x) && (@x < layer.x + layer.width) && (@y > layer.y) && (@y < layer.y + layer.height)
-	constructor: (@task, @list) ->
+	constructor: (@task, @delegate) ->
 		# key = @task.toLowerCase().split(" ").join("_")
 		# pos_str = localStorage.getItem("cardpos:#{key}")
 		# if pos_str != null
@@ -141,7 +144,24 @@ class Card extends Layer
 
 		@draggable.enabled = true
 		@draggable.momentum = false
-		@onDragEnd ->
+
+		# event_types = [
+		# 	Events.Tap,
+		# 	Events.DoubleTap,
+		# 	Events.LongPress,
+		# 	Events.Move,
+		# 	Events.DragStart,
+		# 	Events.Drag,
+		# 	Events.DragEnd
+		# ]
+		#
+		# for event_type in event_types
+		# 	@on event_type, (event) =>
+		# 		console.log(this, event_type, @delegate)
+		# 		if !_.isNil(@delegate) && !_.isNil(@delegate["onCardEvent"])
+		# 			@delegate.onCardEvent(this, event_type, event)
+
+		# @onDragEnd ->
 			# if @isInside(workplace) && workplace.active
 			# 	@animate
 			# 		x: Align.center
@@ -184,12 +204,15 @@ class CardList
 		return false if _.isNil(localStorage.getItem('card_objects'))
 		card_objects = JSON.parse(localStorage.getItem('card_objects'))
 		console.log "restoring #{card_objects.length} cards..."
-		@cards = _.map card_objects, (obj) => new Card(obj, this)
+		restored_cards = _.map card_objects, (obj) => new Card(obj, this)
+		_.forEach restored_cards, (card) => @addCard(card)
 	add: (task) ->
 		card = new Card(task, this)
+		@addCard(card)
+	addCard: (card) ->
 		@cards.push(card)
 		card.onDoubleTap =>
-			#@remove(card)
+			# @remove(card)
 			card.grow()
 		card.onLongPress =>
 			card.shrink() unless card.draggable.isDragging
