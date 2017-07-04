@@ -79,6 +79,9 @@ class ClusterView extends Layer
 		@sendToBack()
 
 class Card extends Layer
+	GROW_FACTOR: 1.25
+	MAX_SIZE: 13
+	MIN_SIZE: 1
 	isInside: (layer) ->
 		(@x > layer.x) && (@x < layer.x + layer.width) && (@y > layer.y) && (@y < layer.y + layer.height)
 	constructor: (@task, @delegate) ->
@@ -89,9 +92,11 @@ class Card extends Layer
 			@xInit = @task.x #parseInt(pos_str.split(",")[0])
 			@yInit = @task.y #parseInt(pos_str.split(",")[1])
 			@task = @task.text
+			# @pointsEstimate = @task.size || @MIN_SIZE
 		else
 			@xInit = (Canvas.width / 2)
 			@yInit = (Canvas.height / 2)
+		@pointsEstimate = Card::MIN_SIZE
 		super
 			x: @xInit
 			y: @yInit
@@ -173,24 +178,50 @@ class Card extends Layer
 		{text: @task, x: @x, y: @y}
 
 	grow: () ->
-		newWidth = @width * (1.25)
-		newHeight = @height * (1.25)
+		if @pointsEstimate == Card::MAX_SIZE
+			return @pointsEstimate
+		newWidth = @width * (Card::GROW_FACTOR)
+		newHeight = @height * (Card::GROW_FACTOR)
 		@animate
 			width: newWidth
 			height: newHeight
 		@text.animate
 			x: ((newWidth / 2) - (@text.width / 2))
 			y: ((newHeight / 2) - (@text.height / 2))
+		if @pointsEstimate == 1
+			@pointsEstimate = 2
+		else if @pointsEstimate == 2
+			@pointsEstimate = 3
+		else if @pointsEstimate == 3
+			@pointsEstimate = 5
+		else if @pointsEstimate == 5
+			@pointsEstimate = 8
+		else if @pointsEstimate == 8
+			@pointsEstimate = @MAX_SIZE
+		return @pointsEstimate
 
 	shrink: () ->
-		newWidth = @width * (1 / 1.25)
-		newHeight = @height * (1 / 1.25)
+		if @pointsEstimate == Card::MIN_SIZE
+			return @pointsEstimate
+		newWidth = @width * (1 / Card::GROW_FACTOR)
+		newHeight = @height * (1 / Card::GROW_FACTOR)
 		@animate
 			width: newWidth
 			height: newHeight
 		@text.animate
 			x: ((newWidth / 2) - (@text.width / 2))
 			y: ((newHeight / 2) - (@text.height / 2))
+		if @pointsEstimate == 2
+			@pointsEstimate = @MIN_SIZE
+		else if @pointsEstimate == 3
+			@pointsEstimate = 2
+		else if @pointsEstimate == 5
+			@pointsEstimate = 3
+		else if @pointsEstimate == 8
+			@pointsEstimate = 5
+		else if @pointsEstimate == 13
+			@pointsEstimate = 8
+		return @pointsEstimate
 
 class CardList
 	constructor: () ->
