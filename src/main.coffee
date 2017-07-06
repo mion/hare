@@ -213,7 +213,7 @@ class Card extends Layer
 		if @pointsEstimate == Card::MIN_SIZE
 			return @pointsEstimate
 		newWidth = @width * (1 / Card::GROW_FACTOR)
-		newHeight = @height * (1 / @GROW_FACTOR)
+		newHeight = @height * (1 / Card::GROW_FACTOR)
 		@animate
 			width: newWidth
 			height: newHeight

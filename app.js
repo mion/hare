@@ -270,7 +270,7 @@
         return this.pointsEstimate;
       }
       newWidth = this.width * (1 / Card.prototype.GROW_FACTOR);
-      newHeight = this.height * (1 / this.GROW_FACTOR);
+      newHeight = this.height * (1 / Card.prototype.GROW_FACTOR);
       this.animate({
         width: newWidth,
         height: newHeight
