@@ -339,6 +339,8 @@
 (function() {
   var Button, CardList, addButton, bug, cardList, clusterButton, clusterMaker, leftmost, tasksQueue;
 
+  Framer.Extras.Hints.disable();
+
   clusterMaker = require("clusters");
 
   Button = require('./button');

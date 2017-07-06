@@ -1,3 +1,6 @@
+# Disable annoying highlighted layers
+Framer.Extras.Hints.disable()
+
 clusterMaker = require "clusters"
 Button = require './button'
 CardList = require './card_list'
@@ -24,8 +27,8 @@ addButton.onTap ->
 	if task != null
 		cardList.add(task)
 
-clusterButton.onTap ->
-	cardList.cluster()
+# clusterButton.onTap ->
+# 	cardList.cluster()
 
 
 leftmost = (layers) ->
