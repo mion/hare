@@ -373,10 +373,6 @@
     }
   });
 
-  clusterButton.onTap(function() {
-    return cardList.cluster();
-  });
-
   leftmost = function(layers) {
     return _.head(_.sortBy(layers, function(l) {
       return l.x;
