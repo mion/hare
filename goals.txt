@@ -1,10 +1,28 @@
-Write a simulation that is very similar to how our world functions.
-Creatures:
+# GOAL
+A fun and practical project to learn AI.
+
+I am implementing a game/simulation of the real world using creatures in a
+Tibia-like environment. You can talk to creatures, command them, ask things,
+etc. They should behave like approximately like humans and ultimately show
+human-like behavior.
+
+## Entities
+
+Here are the entities and what they do in the simulation.
+
+Creatures
 - occupy one square meter on the grid
 - can be carried
 - have weight
-Objects:
+- have sight
+- have basic emotions: anger, sadness, fear, etc.
+- understand and speak natural language with each other
+- ...
+Objects
 - can be carried
 - can be dropped on the floor
 - have weight
--
+- ...
+Ground
+- can hold creatures
+- can hold objects
