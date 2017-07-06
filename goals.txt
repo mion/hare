@@ -1,0 +1,10 @@
+Write a simulation that is very similar to how our world functions.
+Creatures:
+- occupy one square meter on the grid
+- can be carried
+- have weight
+Objects:
+- can be carried
+- can be dropped on the floor
+- have weight
+-

@@ -41,16 +41,16 @@ class Grid extends Layer
     @rows = Math.ceil(@height / @sqm)
     @columns = Math.ceil(@width / @sqm)
     @cells = {}
+    counter = 0
     for i in [0..@rows - 1] by 1
       @cells[i] = {}
       for j in [0..@columns - 1] by 1
         @cells[i][j] = null
-    for j in [0..@columns - 1] by 1
-      for i in [0..@rows - 1] by 1
-        bgColor = if (i + j * @columns) % 2 == 0
+        bgColor = if counter % 2 == 0
           '#f0f0f0'
         else
           '#f6f6f6'
+        counter += 1
         # FIXME cell = new Cell(this, @sqm, i, j, bgColor)
         cell = new Layer
           parent: this
@@ -100,6 +100,16 @@ class Movement
       @creature.pos = new Position(@targetPos.i, @targetPos.j)
     return true
 
+_mid_y = (layer) -> layer.y + layer.height / 2
+_mid_x = (layer) -> layer.x + layer.width / 2
+
+class Face extends Layer
+  constructor: (creature) ->
+    left_eye = new Layer
+      x: creature.x + 4
+      y: _mid_y(creature)
+      backgroundColor:
+
 class Creature extends Layer
   constructor: (@displayName, @pos) ->
     @health = 100
@@ -132,5 +142,5 @@ class Simulation
 
 simulation = new Simulation
 simulation.start()
-Utils.interval 1, ->
-  simulation.update()
+# Utils.interval 1, ->
+  # simulation.update()

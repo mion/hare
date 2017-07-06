@@ -47,7 +47,7 @@
     extend(Grid, superClass);
 
     function Grid(sqm1) {
-      var bgColor, cell, i, j, k, l, m, n, ref, ref1, ref2, ref3;
+      var bgColor, cell, counter, i, j, k, l, ref, ref1;
       this.sqm = sqm1;
       Grid.__super__.constructor.call(this, {
         x: 0,
@@ -59,15 +59,13 @@
       this.rows = Math.ceil(this.height / this.sqm);
       this.columns = Math.ceil(this.width / this.sqm);
       this.cells = {};
+      counter = 0;
       for (i = k = 0, ref = this.rows - 1; k <= ref; i = k += 1) {
         this.cells[i] = {};
         for (j = l = 0, ref1 = this.columns - 1; l <= ref1; j = l += 1) {
           this.cells[i][j] = null;
-        }
-      }
-      for (j = m = 0, ref2 = this.columns - 1; m <= ref2; j = m += 1) {
-        for (i = n = 0, ref3 = this.rows - 1; n <= ref3; i = n += 1) {
-          bgColor = (i + j * this.columns) % 2 === 0 ? '#f0f0f0' : '#f6f6f6';
+          bgColor = counter % 2 === 0 ? '#f0f0f0' : '#f6f6f6';
+          counter += 1;
           cell = new Layer({
             parent: this,
             x: i * this.sqm,
@@ -207,10 +205,6 @@
   simulation = new Simulation;
 
   simulation.start();
-
-  Utils.interval(1, function() {
-    return simulation.update();
-  });
 
 }).call(this);
 
