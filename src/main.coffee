@@ -24,7 +24,7 @@ _alignX = (layer, fixedLayer) ->
   layer.x = _middleX(fixedLayer.x) - layer.width / 2
 
 _above = (layer, fixedLayer, margin) ->
-  layer.y = fixedLayer.y - if _.isNil(margin) then layer.height else margin
+  layer.y = fixedLayer.y - if margin? then layer.height else margin
 
 #############################################
 # Grid
@@ -51,6 +51,7 @@ class Grid extends Layer
     @columns = Math.ceil(@width / @sqm)
     @cells = {}
     counter = 0
+    @creatures = []
     for i in [0..@rows - 1] by 1
       @cells[i] = {}
       for j in [0..@columns - 1] by 1
@@ -73,15 +74,21 @@ class Grid extends Layer
     @cells[pos.i][pos.j]
   isWithinBounds: (pos) ->
     (0 <= pos.i) && (pos.i <= (@rows - 1)) && (0 <= pos.j) && (pos.j <= (@columns - 1))
-  place: (thing) ->
-    @addChild(thing)
-    _centerize(thing, @cellAt(thing.pos))
+  addCreature: (creature) ->
+    @creatures.push(creature)
+    @addChild(creature)
+    _centerize(creature, @cellAt(creature.pos))
+  isWalkable: (pos) ->
+    ! _.some(@creatures, (creature) -> creature.pos.isEqual(pos))
 
 #############################################
 # Creature
 #############################################
 class Position
   constructor: (@i, @j) ->
+
+  isEqual: (pos) ->
+    @i is pos.i and @j is pos.j
 
   next: (direction) ->
     if direction == "up"
@@ -98,7 +105,7 @@ class Position
 class Movement
   constructor: (@grid, @creature, @targetPos) ->
   isValid: () ->
-    @grid.isWithinBounds(@targetPos)
+    @grid.isWithinBounds(@targetPos) and @grid.isWalkable(@targetPos)
   perform: () ->
     return false if @creature.isAnimating
     return false unless @isValid()
@@ -126,7 +133,6 @@ class Creature extends Layer
     nameTextLayer = new TextLayer
       text: @displayName
       fontSize: 15
-      fontWeight: 'bold'
       fontFamily: 'Arial'
       textAlign: 'center'
       x: this.x
@@ -155,7 +161,11 @@ class Simulation
     @grid = new Grid(70)
   start: () ->
     @foo = new Creature("Foo", new Position(1, 2))
-    @grid.place(@foo)
+    @grid.addCreature(@foo)
+    @bar = new Creature("Bar", new Position(2, 2))
+    @grid.addCreature(@bar)
+    @quux = new Creature("Quux", new Position(0, 2))
+    @grid.addCreature(@quux)
   update: () ->
     console.log('[*] Updating')
     dir = Utils.randomChoice(["up", "down", "left", "right"])

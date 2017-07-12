@@ -38,7 +38,7 @@
   };
 
   _above = function(layer, fixedLayer, margin) {
-    return layer.y = fixedLayer.y - (_.isNil(margin) ? layer.height : margin);
+    return layer.y = fixedLayer.y - (margin != null ? layer.height : margin);
   };
 
   Cell = (function(superClass) {
@@ -76,6 +76,7 @@
       this.columns = Math.ceil(this.width / this.sqm);
       this.cells = {};
       counter = 0;
+      this.creatures = [];
       for (i = k = 0, ref = this.rows - 1; k <= ref; i = k += 1) {
         this.cells[i] = {};
         for (j = l = 0, ref1 = this.columns - 1; l <= ref1; j = l += 1) {
@@ -103,9 +104,16 @@
       return (0 <= pos.i) && (pos.i <= (this.rows - 1)) && (0 <= pos.j) && (pos.j <= (this.columns - 1));
     };
 
-    Grid.prototype.place = function(thing) {
-      this.addChild(thing);
-      return _centerize(thing, this.cellAt(thing.pos));
+    Grid.prototype.addCreature = function(creature) {
+      this.creatures.push(creature);
+      this.addChild(creature);
+      return _centerize(creature, this.cellAt(creature.pos));
+    };
+
+    Grid.prototype.isWalkable = function(pos) {
+      return !_.some(this.creatures, function(creature) {
+        return creature.pos.isEqual(pos);
+      });
     };
 
     return Grid;
@@ -117,6 +125,10 @@
       this.i = i1;
       this.j = j1;
     }
+
+    Position.prototype.isEqual = function(pos) {
+      return this.i === pos.i && this.j === pos.j;
+    };
 
     Position.prototype.next = function(direction) {
       if (direction === "up") {
@@ -137,14 +149,14 @@
   })();
 
   Movement = (function() {
-    function Movement(grid, creature, targetPos) {
+    function Movement(grid, creature1, targetPos) {
       this.grid = grid;
-      this.creature = creature;
+      this.creature = creature1;
       this.targetPos = targetPos;
     }
 
     Movement.prototype.isValid = function() {
-      return this.grid.isWithinBounds(this.targetPos);
+      return this.grid.isWithinBounds(this.targetPos) && this.grid.isWalkable(this.targetPos);
     };
 
     Movement.prototype.perform = function() {
@@ -194,7 +206,6 @@
       nameTextLayer = new TextLayer({
         text: this.displayName,
         fontSize: 15,
-        fontWeight: 'bold',
         fontFamily: 'Arial',
         textAlign: 'center',
         x: this.x,
@@ -226,17 +237,21 @@
       this.grid = new Grid(70);
     }
 
+    Simulation.prototype.start = function() {
+      this.foo = new Creature("Foo", new Position(1, 2));
+      this.grid.addCreature(this.foo);
+      this.bar = new Creature("Bar", new Position(2, 2));
+      this.grid.addCreature(this.bar);
+      this.quux = new Creature("Quux", new Position(0, 2));
+      return this.grid.addCreature(this.quux);
+    };
+
     Simulation.prototype.update = function() {
       var action, dir;
       console.log('[*] Updating');
       dir = Utils.randomChoice(["up", "down", "left", "right"]);
       action = new Movement(this.grid, this.foo, this.foo.pos.next(dir));
       return action.perform();
-    };
-
-    Simulation.prototype.start = function() {
-      this.foo = new Creature("Foo", new Position(1, 2));
-      return this.grid.place(this.foo);
     };
 
     return Simulation;
