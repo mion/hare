@@ -1,32 +1,10 @@
 #############################################
 # Imports
 #############################################
+__ = require './utils'
 clusterMaker = require "clusters"
 Position = require './position'
 Movement = require './movement'
-
-#############################################
-# Helpers
-#############################################
-_centerize = (overLayer, underLayer) ->
-  paddingX = (underLayer.width - overLayer.width) / 2
-  paddingY = (underLayer.height - overLayer.height) / 2
-  overLayer.x = underLayer.x + paddingX
-  overLayer.y = underLayer.y + paddingY
-
-_centerizedPoint = (overLayer, underLayer) ->
-  paddingX = (underLayer.width - overLayer.width) / 2
-  paddingY = (underLayer.height - overLayer.height) / 2
-  {x: underLayer.x + paddingX, y: underLayer.y + paddingY}
-
-_middleY = (layer) -> layer.y + layer.height / 2
-_middleX = (layer) -> layer.x + layer.width / 2
-
-_alignX = (layer, fixedLayer) ->
-  layer.x = _middleX(fixedLayer.x) - layer.width / 2
-
-_above = (layer, fixedLayer, margin) ->
-  layer.y = fixedLayer.y - if _.isNil(margin) then layer.height else margin
 
 #############################################
 # Grid
@@ -79,7 +57,7 @@ class Grid extends Layer
   addCreature: (creature) ->
     @creatures.push(creature)
     @addChild(creature)
-    _centerize(creature, @cellAt(creature.pos))
+    __.centerize(creature, @cellAt(creature.pos))
   isWalkable: (pos) ->
     ! _.some(@creatures, (creature) -> creature.pos.isEqual(pos))
 
@@ -121,8 +99,8 @@ class Creature extends Layer
       borderWidth: 1
       borderColor: '#000000'
     @addChild(healthBarLayer)
-    _above healthBarLayer, this, 10
-    _above nameTextLayer, healthBarLayer, 20
+    __.above healthBarLayer, this, 10
+    __.above nameTextLayer, healthBarLayer, 20
 
 #############################################
 # Simulation

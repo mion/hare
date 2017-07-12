@@ -1,5 +1,5 @@
-Position = require './position'
 __ = require './utils'
+Position = require './position'
 
 class module.exports
   constructor: (@grid, @creature, @targetPos) ->
