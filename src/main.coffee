@@ -2,6 +2,8 @@
 # Imports
 #############################################
 clusterMaker = require "clusters"
+Position = require './position'
+Movement = require './movement'
 
 #############################################
 # Helpers
@@ -84,37 +86,6 @@ class Grid extends Layer
 #############################################
 # Creature
 #############################################
-class Position
-  constructor: (@i, @j) ->
-
-  isEqual: (pos) ->
-    @i is pos.i and @j is pos.j
-
-  next: (direction) ->
-    if direction == "up"
-      return new Position(@i, @j - 1)
-    else if direction == "down"
-      return new Position(@i, @j + 1)
-    else if direction == "left"
-      return new Position(@i - 1, @j)
-    else if direction == "right"
-      return new Position(@i + 1, @j)
-    else
-      return null
-
-class Movement
-  constructor: (@grid, @creature, @targetPos) ->
-  isValid: () ->
-    @grid.isWithinBounds(@targetPos) and @grid.isWalkable(@targetPos)
-  perform: () ->
-    return false if @creature.isAnimating
-    return false unless @isValid()
-    anim = new Animation @creature,
-      point: _centerizedPoint(@creature, @grid.cellAt(@targetPos))
-    anim.start()
-    anim.on Events.AnimationEnd, =>
-      @creature.pos = new Position(@targetPos.i, @targetPos.j)
-    return true
 
 class Creature extends Layer
   constructor: (@displayName, @pos) ->
