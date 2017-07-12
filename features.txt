@@ -1,5 +1,6 @@
 [x] Show grid
 [x] Randomly moving creature
 [x] Simple name above creature
+[x] Creatures cannot walk over another
 [ ] Health bar above creature
 [ ] Make creature follow move to mouse

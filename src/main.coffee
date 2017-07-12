@@ -24,7 +24,7 @@ _alignX = (layer, fixedLayer) ->
   layer.x = _middleX(fixedLayer.x) - layer.width / 2
 
 _above = (layer, fixedLayer, margin) ->
-  layer.y = fixedLayer.y - if margin? then layer.height else margin
+  layer.y = fixedLayer.y - if _.isNil(margin) then layer.height else margin
 
 #############################################
 # Grid
