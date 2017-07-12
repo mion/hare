@@ -23,6 +23,9 @@ _middleX = (layer) -> layer.x + layer.width / 2
 _alignX = (layer, fixedLayer) ->
   layer.x = _middleX(fixedLayer.x) - layer.width / 2
 
+_above = (layer, fixedLayer, margin) ->
+  layer.y = fixedLayer.y - if _.isNil(margin) then layer.height else margin
+
 #############################################
 # Grid
 #############################################
@@ -122,29 +125,42 @@ class Creature extends Layer
       borderRadius: 12
     nameTextLayer = new TextLayer
       text: @displayName
-      fontSize: 12
+      fontSize: 15
+      fontWeight: 'bold'
       fontFamily: 'Arial'
       textAlign: 'center'
       x: this.x
       y: this.y
       width: this.width
-    nameTextLayer.y -= nameTextLayer.height
+      color: '#000000'
+    # nameTextLayer.y -= nameTextLayer.height
     @addChild(nameTextLayer)
+    healthBarLayer = new Layer
+      x: this.x
+      y: this.y
+      width: this.width
+      height: 5
+      backgroundColor: '#00ff00'
+      borderWidth: 1
+      borderColor: '#000000'
+    @addChild(healthBarLayer)
+    _above healthBarLayer, this, 10
+    _above nameTextLayer, healthBarLayer, 20
 
 #############################################
-# Simuation
+# Simulation
 #############################################
 class Simulation
   constructor: () ->
     @grid = new Grid(70)
+  start: () ->
+    @foo = new Creature("Foo", new Position(1, 2))
+    @grid.place(@foo)
   update: () ->
     console.log('[*] Updating')
     dir = Utils.randomChoice(["up", "down", "left", "right"])
     action = new Movement(@grid, @foo, @foo.pos.next(dir))
     action.perform()
-  start: () ->
-    @foo = new Creature("Foo", new Position(1, 2))
-    @grid.place(@foo)
 
 simulation = new Simulation
 simulation.start()
