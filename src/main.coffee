@@ -17,6 +17,12 @@ _centerizedPoint = (overLayer, underLayer) ->
   paddingY = (underLayer.height - overLayer.height) / 2
   {x: underLayer.x + paddingX, y: underLayer.y + paddingY}
 
+_middleY = (layer) -> layer.y + layer.height / 2
+_middleX = (layer) -> layer.x + layer.width / 2
+
+_alignX = (layer, fixedLayer) ->
+  layer.x = _middleX(fixedLayer.x) - layer.width / 2
+
 #############################################
 # Grid
 #############################################
@@ -100,16 +106,6 @@ class Movement
       @creature.pos = new Position(@targetPos.i, @targetPos.j)
     return true
 
-_mid_y = (layer) -> layer.y + layer.height / 2
-_mid_x = (layer) -> layer.x + layer.width / 2
-
-class Face extends Layer
-  constructor: (creature) ->
-    left_eye = new Layer
-      x: creature.x + 4
-      y: _mid_y(creature)
-      backgroundColor:
-
 class Creature extends Layer
   constructor: (@displayName, @pos) ->
     @health = 100
@@ -124,6 +120,16 @@ class Creature extends Layer
       height: 50
       backgroundColor: '#0099ff'
       borderRadius: 12
+    nameTextLayer = new TextLayer
+      text: @displayName
+      fontSize: 12
+      fontFamily: 'Arial'
+      textAlign: 'center'
+      x: this.x
+      y: this.y
+      width: this.width
+    nameTextLayer.y -= nameTextLayer.height
+    @addChild(nameTextLayer)
 
 #############################################
 # Simuation
@@ -142,5 +148,5 @@ class Simulation
 
 simulation = new Simulation
 simulation.start()
-# Utils.interval 1, ->
-  # simulation.update()
+Utils.interval 1, ->
+  simulation.update()
