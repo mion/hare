@@ -1,10 +1,26 @@
-[x] Show grid
-[x] Randomly moving creature
-[x] Simple name above creature
-[x] Creatures cannot walk over another
-[x] Health bar above creature
-[ ] Implement A* algorithm
-[ ] Make creature follow move to mouse
-[ ] Creature attack
-[ ] Creature attack animation
-[ ] Creature movement animation
+(x) Button
+( ) Label
+( ) Text Input
+( ) Date Input
+( ) Number Input
+( ) File Input
+( ) List
+( ) Gallery
+( ) Screen
+( ) Bottom Sheet
+( ) Modal
+( ) Tab Bar
+( ) Image
+( ) Video
+( ) Notification
+( ) Pager
+( ) Slider
+( ) Component
+( ) Container
+( ) Avatar
+( ) Icon
+( ) Subtitle
+( ) Arrow
+( ) Nav Bar
+( ) The screen that comes first in the file gets compiled
+( ) Segue & IDs
