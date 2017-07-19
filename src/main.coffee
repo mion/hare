@@ -2,86 +2,74 @@
 # Imports
 #############################################
 __ = require './utils'
-clusterMaker = require "clusters"
-Position = require './position'
-Movement = require './movement'
-Creature = require './creature'
 
-#############################################
-# Grid
-#############################################
-class Cell extends Layer # FIXME
-  constructor: (parent, sqm, i, j, backgroundColor) ->
+inconsolata = Utils.loadWebFont("Inconsolata")
+
+class SExpression
+  constructor: (@tokens, @parent) ->
+    @children = []
+    if not _.isNil(@parent)
+      @parent.children.push(this)
+
+class SAtom extends SExpression
+  constructor: (token, parent) ->
+    super [token], parent
+
+class SList extends SExpression
+  constructor: (tokens, parent) ->
+    super tokens, parent
+
+class Token extends TextLayer
+  constructor: (txt, x, y) ->
     super
-      parent: parent
-      x: i * sqm
-      y: i * sqm
-      width: sqm
-      height: sqm
-      backgroundColor: backgroundColor
+      text: txt
+      fontSize: 20
+      fontFamily: inconsolata
+      textAlign: 'center'
+      x: x
+      y: y
+      color: '#000000'
+      backgroundColor: '#EEEEEE'
+      borderWidth: 1
+      borderColor: '#666666'
+      padding: 10
 
-class Grid extends Layer
-  constructor: (@sqm) ->
-    super
-      x: 0
-      y: 0
-      width: Canvas.width
-      height: Canvas.height
-      backgroundColor: '#333333'
-    @rows = Math.ceil(@height / @sqm)
-    @columns = Math.ceil(@width / @sqm)
-    @cells = {}
-    counter = 0
-    @creatures = []
-    for i in [0..@rows - 1] by 1
-      @cells[i] = {}
-      for j in [0..@columns - 1] by 1
-        @cells[i][j] = null
-        bgColor = if counter % 2 == 0
-          '#f0f0f0'
-        else
-          '#f6f6f6'
-        counter += 1
-        # FIXME cell = new Cell(this, @sqm, i, j, bgColor)
-        cell = new Layer
-          parent: this
-          x: i * @sqm
-          y: j * @sqm
-          width: @sqm
-          height: @sqm
-          backgroundColor: bgColor
-        @cells[i][j] = cell
-  cellAt: (pos) ->
-    @cells[pos.i][pos.j]
-  isWithinBounds: (pos) ->
-    (0 <= pos.i) && (pos.i <= (@rows - 1)) && (0 <= pos.j) && (pos.j <= (@columns - 1))
-  addCreature: (creature) ->
-    @creatures.push(creature)
-    @addChild(creature)
-    __.centerize(creature, @cellAt(creature.pos))
-  isWalkable: (pos) ->
-    ! _.some(@creatures, (creature) -> creature.pos.isEqual(pos))
+render = (exp, x, y, tokens, parentSExp) ->
+  if _.isString(exp)
+    str = new Token(exp, x, y)
+    tokens.push(str)
+    return new SAtom(str, parentSExp)
+  else
+    leftParens = new Token("(", x, y)
+    tokens.push(leftParens)
+    leftParensIndex = tokens.length - 1
+    slist = new SList([], parentSExp)
+    _.each exp, (e) ->
+      lastToken = _.last(tokens)
+      render(e, __.xRight(lastToken), y, tokens, slist)
+    lastToken = _.last(tokens)
+    rightParens = new Token(")", __.xRight(lastToken), y)
+    tokens.push(rightParens)
+    slist.tokens = tokens.slice(leftParensIndex)
+    return slist
 
-#############################################
-# Simulation
-#############################################
-class Simulation
+class Editor
   constructor: () ->
-    @grid = new Grid(70)
-  start: () ->
-    @foo = new Creature("Foo", new Position(1, 2))
-    @grid.addCreature(@foo)
-    @bar = new Creature("Bar", new Position(2, 2))
-    @grid.addCreature(@bar)
-    @quux = new Creature("Quux", new Position(0, 2))
-    @grid.addCreature(@quux)
-  update: () ->
-    console.log('[*] Updating')
-    dir = Utils.randomChoice(["up", "down", "left", "right"])
-    action = new Movement(@grid, @foo, @foo.pos.next(dir))
-    action.perform()
+    # (run (def (square x) (* x x)) (square 5))
+    @program = ['run', ['def', ['square', 'x'], ['*', 'x', 'x']], ['square', '5']]
+    sexp = render @program, 50, 100, []
+    console.log(sexp)
 
-simulation = new Simulation
-simulation.start()
-Utils.interval 1, ->
-  simulation.update()
+editor = new Editor
+
+Key =
+  SPACE: 32
+  ENTER: 13
+
+class KeyHandler
+  constructor: (@editor) ->
+    Events.wrap(window).addEventListener 'keydown', (event) ->
+      if event.keyCode is Key.SPACE
+        console.log 'space'
+
+keyHandler = new KeyHandler(editor)

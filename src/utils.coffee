@@ -1,4 +1,6 @@
 module.exports =
+  xRight: (layer) ->
+    layer.x + layer.width
   centerize: (overLayer, underLayer) ->
     paddingX = (underLayer.width - overLayer.width) / 2
     paddingY = (underLayer.height - overLayer.height) / 2
