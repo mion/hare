@@ -8,8 +8,18 @@ inconsolata = Utils.loadWebFont("Inconsolata")
 class SExpression
   constructor: (@tokens, @parent) ->
     @children = []
+    @previous = null
+    @next = null
     if not _.isNil(@parent)
+      if not _.isEmpty(@parent.children)
+        sibling = _.last(@parent.children)
+        @previous = sibling
+        sibling.next = this
       @parent.children.push(this)
+  select: () ->
+    _.each @tokens, (token) -> token.select()
+  deselect: () ->
+    _.each @tokens, (token) -> token.deselect()
 
 class SAtom extends SExpression
   constructor: (token, parent) ->
@@ -33,6 +43,10 @@ class Token extends TextLayer
       borderWidth: 1
       borderColor: '#666666'
       padding: 10
+  select: () ->
+    @backgroundColor = '#FFFFCC'
+  deselect: () ->
+    @backgroundColor = '#EEEEEE'
 
 render = (exp, x, y, tokens, parentSExp) ->
   if _.isString(exp)
@@ -57,19 +71,57 @@ class Editor
   constructor: () ->
     # (run (def (square x) (* x x)) (square 5))
     @program = ['run', ['def', ['square', 'x'], ['*', 'x', 'x']], ['square', '5']]
-    sexp = render @program, 50, 100, []
-    console.log(sexp)
+    @rootSExp = render @program, 50, 100, []
+    @currentSExp = null
+    console.log(@rootSExp)
+  goNext: () ->
+    return if _.isNil(@currentSExp)
+    return if _.isNil(@currentSExp.next)
+    @currentSExp.deselect()
+    @currentSExp = @currentSExp.next
+    @currentSExp.select()
+  goPrevious: () ->
+    return if _.isNil(@currentSExp)
+    return if _.isNil(@currentSExp.previous)
+    @currentSExp.deselect()
+    @currentSExp = @currentSExp.previous
+    @currentSExp.select()
+  goIn: () ->
+    if _.isNil(@currentSExp)
+      @currentSExp = @rootSExp
+      @currentSExp.select()
+    else
+      if not _.isEmpty(@currentSExp.children)
+        @currentSExp.deselect()
+        @currentSExp = _.first(@currentSExp.children)
+        @currentSExp.select()
+  goOut: () ->
+    return if _.isNil(@currentSExp)
+    @currentSExp.deselect()
+    @currentSExp = @currentSExp.parent
+    @currentSExp.select() unless _.isNil(@currentSExp)
 
 editor = new Editor
 
 Key =
+  LEFT: 74
+  RIGHT: 76
+  UP: 73
+  DOWN: 75
   SPACE: 32
   ENTER: 13
 
 class KeyHandler
   constructor: (@editor) ->
-    Events.wrap(window).addEventListener 'keydown', (event) ->
+    Events.wrap(window).addEventListener 'keydown', (event) =>
+      # console.log 'key code', event.keyCode
+      if event.keyCode is Key.ENTER
+        @editor.goIn()
       if event.keyCode is Key.SPACE
-        console.log 'space'
+        @editor.goOut()
+      if event.keyCode is Key.RIGHT
+        @editor.goNext()
+      if event.keyCode is Key.LEFT
+        @editor.goPrevious()
 
 keyHandler = new KeyHandler(editor)
