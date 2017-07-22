@@ -13,21 +13,13 @@ module.exports = function(grunt) {
     watch: {
       coffee: {
         files: ['src/*.coffee'],
-        tasks: ['clean:js', 'coffee:dist', 'browserify']
+        tasks: ['coffee:dist', 'browserify']
       }
     }
-    // uglify: {
-    //   options: {
-    //     banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
-    //   },
-    //   build: {
-    //     src: 'src/<%= pkg.name %>.js',
-    //     dest: 'build/<%= pkg.name %>.min.js'
-    //   }
-    // }
   });
 
   // Load the plugin that provides the "uglify" task.
+  grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
 

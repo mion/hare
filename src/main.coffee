@@ -127,3 +127,5 @@ class KeyHandler
         @editor.goPrevious()
 
 keyHandler = new KeyHandler(editor)
+
+console.log 'running...'
