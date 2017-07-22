@@ -1,0 +1,21 @@
+{
+  "name": "hare",
+  "version": "1.0.0",
+  "description": "The goal of this project is creating a simple simulation of a world. Its inhabitants are creatures that they behave in human-like ways.",
+  "main": "app.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mion/hare.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mion/hare/issues"
+  },
+  "homepage": "https://github.com/mion/hare#readme"
+}
