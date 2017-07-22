@@ -11,10 +11,6 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      bower: {
-        files: ['bower.json'],
-        tasks: ['bowerInstall']
-      },
       coffee: {
         files: ['src/*.coffee'],
         tasks: ['clean:js', 'coffee:dist', 'browserify']
@@ -32,7 +28,8 @@ module.exports = function(grunt) {
   });
 
   // Load the plugin that provides the "uglify" task.
-  // grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Default task(s).
   grunt.registerTask('default', ['watch']);
