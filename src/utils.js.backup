@@ -1,0 +1,26 @@
+module.exports = {
+  log: (str) => {
+    console.log(`[*] ${str}`)
+  },
+  xRight: (layer) => {
+    return layer.x + layer.width
+  },
+  centerize: (over, under) => {
+    point = this.centerizedPoint(over, under)
+    over.x = point.x
+    over.y = point.y
+  },
+  centerizedPoint: (over, under) => {
+    paddingX = (under.width - over.width) / 2
+    paddingY = (under.height - over.height) / 2
+    return {x: under.x + paddingX, y: under.y + paddingY}
+  },
+  middleY: (layer) => { return layer.y + layer.height / 2 },
+  middleX: (layer) => { return layer.x + layer.width / 2 },
+  alignX: (layer, over) => {
+    layer.x = this.middleX(over.x) - layer.width / 2
+  },
+  placeAbove: (layer, over, margin) => {
+    layer.y = over.y - (_.isNil(margin) ? layer.height : layer.width)
+  }
+}
