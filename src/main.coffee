@@ -128,4 +128,4 @@ class KeyHandler
 
 keyHandler = new KeyHandler(editor)
 
-console.log 'ok'
+console.log 'running...'

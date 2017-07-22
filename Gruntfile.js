@@ -11,15 +11,15 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      scripts: {
-        files: ['src/*.js'],
-        tasks: ['browserify']
+      coffee: {
+        files: ['src/*.coffee'],
+        tasks: ['coffee:dist', 'browserify']
       }
     }
   });
 
   // Load the plugin that provides the "uglify" task.
-  // grunt.loadNpmTasks('grunt-contrib-coffee');
+  grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
