@@ -40,19 +40,19 @@
 	</head>
 	<body>
 		<!-- <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script> -->
-		<script type="text/javascript" src="jquery-1.12.4.min.js"></script>
+		<!-- <script type="text/javascript" src="jquery-1.12.4.min.js"></script> -->
 		<script src="framer/framer.js"></script>
 		<script src="app.js"></script>
 		<script type="text/javascript">
-			$("body").keydown(function (event) {
-				// console.log("event", event);
-				if (event.keyCode != 48) { return; }
-				$.ajax({
-					url: "http://localhost:4567/recompile"
-				}).done(function () {
-					window.location.reload();
-				});
-			});
+			// $("body").keydown(function (event) {
+			// 	// console.log("event", event);
+			// 	if (event.keyCode != 48) { return; }
+			// 	$.ajax({
+			// 		url: "http://localhost:4567/recompile"
+			// 	}).done(function () {
+			// 		window.location.reload();
+			// 	});
+			// });
 		</script>
 	</body>
 </html>

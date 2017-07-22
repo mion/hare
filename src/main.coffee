@@ -30,6 +30,9 @@ class SList extends SExpression
     super tokens, parent
 
 class Token extends TextLayer
+  DESELECTED_COLOR: '#F5F5F5'
+  SELECTED_COLOR: '#F5F500'
+
   constructor: (txt, x, y) ->
     super
       text: txt
@@ -39,14 +42,14 @@ class Token extends TextLayer
       x: x
       y: y
       color: '#000000'
-      backgroundColor: '#EEEEEE'
+      backgroundColor: @DESELECTED_COLOR
       borderWidth: 1
-      borderColor: '#666666'
+      borderColor: '#F2F2F2'
       padding: 10
   select: () ->
-    @backgroundColor = '#FFFFCC'
+    @backgroundColor = @SELECTED_COLOR
   deselect: () ->
-    @backgroundColor = '#EEEEEE'
+    @backgroundColor = @DESELECTED_COLOR
 
 render = (exp, x, y, tokens, parentSExp) ->
   if _.isString(exp)
@@ -69,8 +72,7 @@ render = (exp, x, y, tokens, parentSExp) ->
 
 class Editor
   constructor: () ->
-    # (run (def (square x) (* x x)) (square 5))
-    @program = ['run', ['def', ['square', 'x'], ['*', 'x', 'x']], ['square', '5']]
+    @program = [['lambda', ['x'], ['cons', 'x', ['quote', ['b']]]]]
     @rootSExp = render @program, 50, 100, []
     @currentSExp = null
     console.log(@rootSExp)
@@ -104,20 +106,20 @@ class Editor
 editor = new Editor
 
 Key =
-  LEFT: 74
+  LEFT: 72
   RIGHT: 76
-  UP: 73
-  DOWN: 75
+  UP: 75
+  DOWN: 74
   SPACE: 32
   ENTER: 13
 
 class KeyHandler
   constructor: (@editor) ->
     Events.wrap(window).addEventListener 'keydown', (event) =>
-      # console.log 'key code', event.keyCode
-      if event.keyCode is Key.ENTER
+      console.log 'key code', event.keyCode
+      if event.keyCode is Key.DOWN
         @editor.goIn()
-      if event.keyCode is Key.SPACE
+      if event.keyCode is Key.UP
         @editor.goOut()
       if event.keyCode is Key.RIGHT
         @editor.goNext()
