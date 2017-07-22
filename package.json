@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "The goal of this project is creating a simple simulation of a world. Its inhabitants are creatures that they behave in human-like ways.",
   "main": "app.js",
-  "dependencies": {},
+  "dependencies": {
+    "browserify": "^14.4.0"
+  },
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "~0.10.0",
