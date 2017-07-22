@@ -1,2 +1,2 @@
 const utils = require('./utils')
-utils.log("fuck coffeescript")
+utils.log("fuck coffeescript in the face")
