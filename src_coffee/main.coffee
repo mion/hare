@@ -5,6 +5,25 @@ __ = require './utils'
 
 inconsolata = Utils.loadWebFont("Inconsolata")
 
+parse = (string) ->
+  tokens = string.replace(/\(/g, "( ").replace(/\)/g, " )").split(" ").filter (str) -> str isnt ""
+  tokens
+
+test = (fn, args..., expected) ->
+  actual = fn(args...)
+  if _.isEqual(actual, expected)
+    console.log "[*] Test OK"
+  else
+    console.log "[!] Test failed!\n    Expected: `#{expected}` (#{typeof expected})\n    Actual: `#{actual}` (#{typeof actual})"
+
+test parse, "hi", "hi"
+test parse, "()", []
+test parse, "(hi)", ["hi"]
+test parse, "(hello there)", ["hello", "there"]
+test parse, "(hello (my good) old friend ())", ["hello", ["my", "good"], "old", "friend", []]
+
+window.parseHare = parse
+
 class SExpression
   constructor: (@tokens, @parent) ->
     @children = []
