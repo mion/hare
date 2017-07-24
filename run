@@ -1,2 +1,0 @@
-coffee --watch --compile --map --output lib/ src/
-browserify lib/main.js -o app.js
