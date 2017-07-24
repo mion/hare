@@ -3,4 +3,4 @@
 # Run this file either after or before 'run_coffee'. Both must be running.
 
 # Start budo server on the compiled JS
-budo src/main.js
+budo src/main.js --live
