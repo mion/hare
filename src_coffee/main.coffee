@@ -33,26 +33,31 @@ class SList extends SExpression
     super tokens, parent
 
 class Token extends TextLayer
-  DESELECTED_COLOR: '#F5F5F5'
-  SELECTED_COLOR: '#F5F500'
+  BACKGROUND_COLOR_DESELECTED: '#FFFFFF'
+  TEXT_COLOR_DESELECTED: '#AAA'
+  BACKGROUND_COLOR_SELECTED: '#F8F8F8'
+  TEXT_COLOR_SELECTED: '#000000'
   constructor: (txt, x, y) ->
     super
       text: txt
-      fontSize: 20
+      fontSize: 15
       fontFamily: inconsolata
       textAlign: 'center'
       x: x
       y: y
-      color: '#000000'
-      backgroundColor: @DESELECTED_COLOR
+      color: @TEXT_COLOR_DESELECTED
+      backgroundColor: @BACKGROUND_COLOR_DESELECTED
       borderWidth: 1
-      borderColor: '#F2F2F2'
+      borderColor: '#FEFEFE'
       padding: 10
   select: () ->
-    @backgroundColor = @SELECTED_COLOR
+    @backgroundColor = @BACKGROUND_COLOR_SELECTED
+    @color = @TEXT_COLOR_SELECTED
   deselect: () ->
-    @backgroundColor = @DESELECTED_COLOR
+    @backgroundColor = @BACKGROUND_COLOR_DESELECTED
+    @color = @TEXT_COLOR_DESELECTED
 
+# work in progress
 evaluate = (sexp) ->
   return sexp unless _.isArray(sexp) && sexp.length > 0
   operator = _.head(sexp)
@@ -125,25 +130,42 @@ class Editor
 
 editor = new Editor
 
-Key =
-  LEFT: 72
-  RIGHT: 76
-  UP: 75
-  DOWN: 74
-  SPACE: 32
-  ENTER: 13
+# editor.goIn()
+
+key =
+  h: 72
+  i: 73
+  j: 74
+  k: 75
+  l: 76
+  space: 32
+  enter: 13
+  shift: 16
+
+KeyForCommand =
+  GO_IN: key.j
+  GO_OUT: key.k
+  GO_PREVIOUS: key.h
+  GO_NEXT: key.l
 
 class KeyHandler
   constructor: (@editor) ->
+    @isDown = {}
+    Events.wrap(window).addEventListener 'keyup', (event) =>
+      console.log 'key up', event.keyCode
+      delete @isDown[event.keyCode]
     Events.wrap(window).addEventListener 'keydown', (event) =>
-      console.log 'key code', event.keyCode
-      if event.keyCode is Key.DOWN
+      console.log 'key down', event.keyCode
+      @isDown[event.keyCode] = true
+    # Events.wrap(window).addEventListener 'keypress', (event) =>
+    #   console.log 'key press', event.keyCode
+      if event.keyCode is KeyForCommand.GO_IN
         @editor.goIn()
-      if event.keyCode is Key.UP
+      if event.keyCode is KeyForCommand.GO_OUT
         @editor.goOut()
-      if event.keyCode is Key.RIGHT
+      if event.keyCode is KeyForCommand.GO_NEXT
         @editor.goNext()
-      if event.keyCode is Key.LEFT
+      if event.keyCode is KeyForCommand.GO_PREVIOUS
         @editor.goPrevious()
 
 keyHandler = new KeyHandler(editor)
