@@ -95,9 +95,18 @@ render = (exp, x, y, tokens, parentSExp) ->
     slist.tokens = tokens.slice(leftParensIndex)
     return slist
 
+class Walker
+  constructor: (@node) ->
+
 class Editor
   constructor: () ->
-    @program = [['lambda', ['x'], ['cons', 'x', ['quote', ['b']]]]]
+    @program = [
+      'do',
+      ['let', "'size", '32'],
+      ['let', "'square",
+        ['func', ['x'], ['*', 'x', 'x']]],
+      ['square', 'size']
+    ]
     @rootSExp = render @program, 50, 100, []
     @currentSExp = null
     console.log(@rootSExp)
