@@ -62,23 +62,22 @@ class Token extends TextLayer
       y: y
       color: @TEXT_COLOR_DESELECTED
       backgroundColor: @BACKGROUND_COLOR_DESELECTED
-      borderWidth: 1
-      borderColor: '#FEFEFE'
-      padding: 10
+      padding: 5
   select: (siblingIndex, parentIndex) ->
     console.log "select: #{@text} (#{siblingIndex}, #{parentIndex})"
     if siblingIndex == 0 && parentIndex == 0
-      @backgroundColor = '#F8F8F8'
-      @color = '#000'
-    else if siblingIndex == 0 && parentIndex == -1
       @backgroundColor = '#000'
       @color = '#FFF'
+    else if siblingIndex == 0 && parentIndex == -1
+      @backgroundColor = '#555'
+      @color = '#AAA'
+      @fontWeight = 'bold'
     else if siblingIndex != 0 && parentIndex == 0
-      @backgroundColor = '#FFF'
+      @backgroundColor = '#F2F2F2'
       @color = '#000'
     else
       @backgroundColor = '#FFF'
-      @color = '#AAA'
+      @color = '#BBB'
   deselect: () ->
     @backgroundColor = @BACKGROUND_COLOR_DESELECTED
     @color = @TEXT_COLOR_DESELECTED
@@ -178,6 +177,9 @@ class Editor
       walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
       @currentSExp = targetSExp
       walk @currentSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.select(visitedTokenById, siblingIndex, parentIndex)
+    else if @currentSExp == @rootSExp
+      walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
+      @currentSExp = null
   goNext: () ->
     @go('next')
   goPrevious: () ->
