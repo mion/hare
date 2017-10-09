@@ -67,8 +67,18 @@ class Token extends TextLayer
       padding: 10
   select: (siblingIndex, parentIndex) ->
     console.log "select: #{@text} (#{siblingIndex}, #{parentIndex})"
-    @backgroundColor = @BACKGROUND_COLOR_SELECTED
-    @color = @TEXT_COLOR_SELECTED
+    if siblingIndex == 0 && parentIndex == 0
+      @backgroundColor = '#F8F8F8'
+      @color = '#000'
+    else if siblingIndex == 0 && parentIndex == -1
+      @backgroundColor = '#000'
+      @color = '#FFF'
+    else if siblingIndex != 0 && parentIndex == 0
+      @backgroundColor = '#FFF'
+      @color = '#000'
+    else
+      @backgroundColor = '#FFF'
+      @color = '#AAA'
   deselect: () ->
     @backgroundColor = @BACKGROUND_COLOR_DESELECTED
     @color = @TEXT_COLOR_DESELECTED
