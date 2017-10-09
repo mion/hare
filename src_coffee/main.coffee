@@ -10,6 +10,7 @@ Parser.test()
 
 class SExpression
   constructor: (@tokens, @parent) ->
+    @id = _.uniqueId('sexp_')
     @children = []
     @previous = null
     @next = null
@@ -19,17 +20,31 @@ class SExpression
         @previous = sibling
         sibling.next = this
       @parent.children.push(this)
-  select: () ->
-    _.each @tokens, (token) -> token.select()
-  deselect: () ->
-    _.each @tokens, (token) -> token.deselect()
+  toString: () ->
+    if @tokens? then @tokens.map((t) -> t.text).join(' ') else "NULL"
+  select: (visitedTokenById, siblingIndex, parentIndex) ->
+    console.log "sel"
+    _.each @tokens, (token) ->
+      if not visitedTokenById[token.id]
+        visitedTokenById[token.id] = true
+        token.select(siblingIndex, parentIndex)
+  deselect: (visitedTokenById, siblingIndex, parentIndex) ->
+    console.log "desel"
+    _.each @tokens, (token) ->
+      if not visitedTokenById[token.id]
+        visitedTokenById[token.id] = true
+        token.deselect()
 
 class SAtom extends SExpression
   constructor: (token, parent) ->
+    @isAtom = true
+    @isList = false
     super [token], parent
 
 class SList extends SExpression
   constructor: (tokens, parent) ->
+    @isAtom = false
+    @isList = true
     super tokens, parent
 
 class Token extends TextLayer
@@ -50,13 +65,16 @@ class Token extends TextLayer
       borderWidth: 1
       borderColor: '#FEFEFE'
       padding: 10
-  select: () ->
+  select: (siblingIndex, parentIndex) ->
+    console.log "select: #{@text} (#{siblingIndex}, #{parentIndex})"
     @backgroundColor = @BACKGROUND_COLOR_SELECTED
     @color = @TEXT_COLOR_SELECTED
   deselect: () ->
     @backgroundColor = @BACKGROUND_COLOR_DESELECTED
     @color = @TEXT_COLOR_DESELECTED
 
+############################################
+# EVALUATE
 # work in progress
 evaluate = (sexp) ->
   return sexp unless _.isArray(sexp) && sexp.length > 0
@@ -76,6 +94,8 @@ evaluate = (sexp) ->
 
 window.evaluate = evaluate
 
+############################################
+# RENDER
 render = (exp, x, y, tokens, parentSExp) ->
   if _.isString(exp)
     str = new Token(exp, x, y)
@@ -95,9 +115,33 @@ render = (exp, x, y, tokens, parentSExp) ->
     slist.tokens = tokens.slice(leftParensIndex)
     return slist
 
-class Walker
-  constructor: (@node) ->
+############################################
+# WALK
+walk = (sexp, callback) ->
+  console.log "walking from: ", sexp.toString()
+  visitedSExpressionById = {}
+  visitedTokenById = {}
+  _walk(sexp, callback, visitedSExpressionById, visitedTokenById, [0, 0])
 
+_walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
+  return unless sexp?
+  return if visitedSExpressionById[sexp.id]
+  visitedSExpressionById[sexp.id] = true
+  siblingIndex = indexPair[0]
+  parentIndex = indexPair[1]
+  callback(sexp, visitedTokenById, siblingIndex, parentIndex)
+  nextIndex = if siblingIndex? then siblingIndex + 1 else null
+  previousIndex = if siblingIndex? then siblingIndex - 1 else null
+  upIndex = if parentIndex? then parentIndex - 1 else null
+  # downIndex = if parentIndex? then parentIndex + 1 else null
+  _walk(sexp.next, callback, visitedSExpressionById, visitedTokenById, [nextIndex, parentIndex])
+  _walk(sexp.previous, callback, visitedSExpressionById, visitedTokenById, [previousIndex, parentIndex])
+  if not sexp.previous?
+    _walk(sexp.parent, callback, visitedSExpressionById, visitedTokenById, [0, upIndex])
+  # _walk(_.first(sexp.children), callback, visited, [null, downIndex])
+
+############################################
+# EDITOR
 class Editor
   constructor: () ->
     @program = [
@@ -110,32 +154,28 @@ class Editor
     @rootSExp = render @program, 50, 100, []
     @currentSExp = null
     console.log(@rootSExp)
-  goNext: () ->
-    return if _.isNil(@currentSExp)
-    return if _.isNil(@currentSExp.next)
-    @currentSExp.deselect()
-    @currentSExp = @currentSExp.next
-    @currentSExp.select()
-  goPrevious: () ->
-    return if _.isNil(@currentSExp)
-    return if _.isNil(@currentSExp.previous)
-    @currentSExp.deselect()
-    @currentSExp = @currentSExp.previous
-    @currentSExp.select()
-  goIn: () ->
-    if _.isNil(@currentSExp)
-      @currentSExp = @rootSExp
-      @currentSExp.select()
+  go: (dir) ->
+    targetSExp = if _.isNil(@currentSExp)
+      @rootSExp
     else
-      if not _.isEmpty(@currentSExp.children)
-        @currentSExp.deselect()
-        @currentSExp = _.first(@currentSExp.children)
-        @currentSExp.select()
+      {
+        next: @currentSExp.next
+        previous: @currentSExp.previous
+        in: _.first(@currentSExp.children)
+        out: @currentSExp.parent
+      }[dir]
+    if targetSExp?
+      walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
+      @currentSExp = targetSExp
+      walk @currentSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.select(visitedTokenById, siblingIndex, parentIndex)
+  goNext: () ->
+    @go('next')
+  goPrevious: () ->
+    @go('previous')
+  goIn: () ->
+    @go('in')
   goOut: () ->
-    return if _.isNil(@currentSExp)
-    @currentSExp.deselect()
-    @currentSExp = @currentSExp.parent
-    @currentSExp.select() unless _.isNil(@currentSExp)
+    @go('out')
 
 editor = new Editor
 
