@@ -62,7 +62,7 @@ class Token extends TextLayer
       y: y
       color: @TEXT_COLOR_DESELECTED
       backgroundColor: @BACKGROUND_COLOR_DESELECTED
-      padding: 15
+      padding: 10
   select: (siblingIndex, parentIndex) ->
     console.log "select: #{@text} (#{siblingIndex}, #{parentIndex})"
     if siblingIndex == 0 && parentIndex == 0
@@ -126,6 +126,7 @@ render = (exp, x, y, tokens, parentSExp) ->
 
 ############################################
 # WALK
+#   TODO: remove these variables from the function header: visitedSExpressionById visitedTokenById
 walk = (sexp, callback) ->
   console.log "walking from: ", sexp.toString()
   visitedSExpressionById = {}
@@ -148,7 +149,7 @@ _walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
   if not sexp.previous?
     _walk(sexp.parent, callback, visitedSExpressionById, visitedTokenById, [0, upIndex])
   # _walk(_.first(sexp.children), callback, visited, [null, downIndex])
-
+  
 ############################################
 # EDITOR
 class Editor
