@@ -55,14 +55,14 @@ class Token extends TextLayer
   constructor: (txt, x, y) ->
     super
       text: txt
-      fontSize: 15
+      fontSize: 12
       fontFamily: inconsolata
       textAlign: 'center'
       x: x
       y: y
       color: @TEXT_COLOR_DESELECTED
       backgroundColor: @BACKGROUND_COLOR_DESELECTED
-      padding: 5
+      padding: 15
   select: (siblingIndex, parentIndex) ->
     console.log "select: #{@text} (#{siblingIndex}, #{parentIndex})"
     if siblingIndex == 0 && parentIndex == 0

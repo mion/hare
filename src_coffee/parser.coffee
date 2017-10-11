@@ -44,4 +44,6 @@ module.exports =
     test parse, "()", []
     test parse, "(hi)", ["hi"]
     test parse, "(hello there)", ["hello", "there"]
+    test parse, "(hello 'there)", ["hello", "'there"]
+    test parse, "(hello (1 2 3))", ["hello", [1, 2, 3]]
     test parse, "(hello (my good) old friend ())", ["hello", ["my", "good"], "old", "friend", []]
