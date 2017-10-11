@@ -9,7 +9,7 @@ inconsolata = Utils.loadWebFont("Inconsolata")
 Parser.test()
 
 class SExpression
-  constructor: (@tokens, @parent) ->
+  constructor: (@tokens, @parent, @program) ->
     @id = _.uniqueId('sexp_')
     @children = []
     @previous = null
@@ -36,24 +36,25 @@ class SExpression
         token.deselect()
 
 class SAtom extends SExpression
-  constructor: (token, parent) ->
+  constructor: (token, parent, program) ->
     @isAtom = true
     @isList = false
-    super [token], parent
+    super [token], parent, program
 
 class SList extends SExpression
-  constructor: (tokens, parent) ->
+  constructor: (tokens, parent, program) ->
     @isAtom = false
     @isList = true
-    super tokens, parent
+    super tokens, parent, program
 
 class Token extends TextLayer
   BACKGROUND_COLOR_DESELECTED: '#FFFFFF'
   TEXT_COLOR_DESELECTED: '#AAA'
   BACKGROUND_COLOR_SELECTED: '#F8F8F8'
   TEXT_COLOR_SELECTED: '#000000'
-  constructor: (txt, x, y) ->
+  constructor: (txt, x, y, tokenGroup) ->
     super
+      parent: tokenGroup
       text: txt
       fontSize: 12
       fontFamily: inconsolata
@@ -105,21 +106,42 @@ window.evaluate = evaluate
 
 ############################################
 # RENDER
-render = (exp, x, y, tokens, parentSExp) ->
-  if _.isString(exp)
-    str = new Token(exp, x, y)
-    tokens.push(str)
-    return new SAtom(str, parentSExp)
+compile = (program) ->
+  return program unless _.isArray(program)
+  if _.first(program) == 'do'
+    exps = _.chain(program).drop(1).map(compile).value()
+    body = _.dropRight(exps).concat("return #{_.last(exps)}")
+    bodyStr = body.join(";\n")
+    "(function () { #{bodyStr} })()"
+  else if _.first(program) == 'var'
+    "var #{program[1]} = (#{compile(program[2])})"
+  else if program[0] == 'func'
+    args = program[1].join(', ')
+    rest = _.chain(program).drop(2).map(compile).value()
+    "function (#{args}) { return (#{rest}); }"
+  else if program[0] == '*'
+    "(#{program[1]}) * (#{program[2]})"
   else
-    leftParens = new Token("(", x, y)
+    arglist = _.chain(program).tail().map(compile).value()
+    "#{program[0]}(#{arglist})"
+
+############################################
+# RENDER
+render = (exp, x, y, tokens, parentSExp, tokenGroup) ->
+  if _.isString(exp)
+    str = new Token(exp, x, y, tokenGroup)
+    tokens.push(str)
+    return new SAtom(str, parentSExp, exp)
+  else
+    leftParens = new Token("(", x, y, tokenGroup)
     tokens.push(leftParens)
     leftParensIndex = tokens.length - 1
-    slist = new SList([], parentSExp)
+    slist = new SList([], parentSExp, exp)
     _.each exp, (e) ->
       lastToken = _.last(tokens)
-      render(e, __.xRight(lastToken), y, tokens, slist)
+      render(e, __.xRight(lastToken), y, tokens, slist, tokenGroup)
     lastToken = _.last(tokens)
-    rightParens = new Token(")", __.xRight(lastToken), y)
+    rightParens = new Token(")", __.xRight(lastToken), y, tokenGroup)
     tokens.push(rightParens)
     slist.tokens = tokens.slice(leftParensIndex)
     return slist
@@ -149,19 +171,24 @@ _walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
   if not sexp.previous?
     _walk(sexp.parent, callback, visitedSExpressionById, visitedTokenById, [0, upIndex])
   # _walk(_.first(sexp.children), callback, visited, [null, downIndex])
-  
+
 ############################################
 # EDITOR
 class Editor
   constructor: () ->
     @program = [
       'do',
-      ['let', "'size", '32'],
-      ['let', "'square",
+      ['var', "size", '32'],
+      ['var', "square",
         ['func', ['x'], ['*', 'x', 'x']]],
       ['square', 'size']
     ]
-    @rootSExp = render @program, 50, 100, []
+    @tokenGroup = new Layer
+    @rootSExp = render @program, 0, 0, [], null, @tokenGroup
+    @tokenGroup.height = @rootSExp.tokens[0].height
+    @tokenGroup.width = _.reduce(_.map(@rootSExp.tokens, (t) -> t.width), _.add, 0)
+    @tokenGroup.x = Align.center
+    @tokenGroup.y = Align.center
     @currentSExp = null
     console.log(@rootSExp)
   go: (dir) ->
@@ -189,6 +216,12 @@ class Editor
     @go('in')
   goOut: () ->
     @go('out')
+  compile: () ->
+    if @currentSExp?
+      console.log("[*] INPUT\n", @currentSExp.program)
+      console.log("[*] OUTPUT\n", compile(@currentSExp.program))
+    else
+      console.log '[!] No expression selected.'
 
 editor = new Editor
 
@@ -209,6 +242,7 @@ KeyForCommand =
   GO_OUT: key.k
   GO_PREVIOUS: key.h
   GO_NEXT: key.l
+  COMPILE: key.enter
 
 class KeyHandler
   constructor: (@editor) ->
@@ -229,6 +263,8 @@ class KeyHandler
         @editor.goNext()
       if event.keyCode is KeyForCommand.GO_PREVIOUS
         @editor.goPrevious()
+      if event.keyCode is KeyForCommand.COMPILE
+        @editor.compile()
 
 keyHandler = new KeyHandler(editor)
 
