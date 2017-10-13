@@ -249,8 +249,6 @@ class KeyHandler
     Events.wrap(window).addEventListener 'keydown', (event) =>
       console.log 'key down', event.keyCode
       @isDown[event.keyCode] = true
-    # Events.wrap(window).addEventListener 'keypress', (event) =>
-    #   console.log 'key press', event.keyCode
       if event.keyCode is KeyForCommand.GO_IN
         @editor.goIn()
       if event.keyCode is KeyForCommand.GO_OUT
