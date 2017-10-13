@@ -23,13 +23,11 @@ class SExpression
   toString: () ->
     if @tokens? then @tokens.map((t) -> t.text).join(' ') else "NULL"
   select: (visitedTokenById, siblingIndex, parentIndex) ->
-    console.log "sel"
     _.each @tokens, (token) ->
       if not visitedTokenById[token.id]
         visitedTokenById[token.id] = true
         token.select(siblingIndex, parentIndex)
   deselect: (visitedTokenById, siblingIndex, parentIndex) ->
-    console.log "desel"
     _.each @tokens, (token) ->
       if not visitedTokenById[token.id]
         visitedTokenById[token.id] = true
@@ -65,7 +63,7 @@ class Token extends TextLayer
       backgroundColor: @BACKGROUND_COLOR_DESELECTED
       padding: 10
   select: (siblingIndex, parentIndex) ->
-    console.log "select: #{@text} (#{siblingIndex}, #{parentIndex})"
+    # console.log "'#{@text}'\n\t-->\t(#{siblingIndex}, #{parentIndex})"
     if siblingIndex == 0 && parentIndex == 0
       @backgroundColor = '#000'
       @color = '#FFF'
@@ -110,7 +108,7 @@ compile = (program) ->
   return program unless _.isArray(program)
   if _.first(program) == 'do'
     exps = _.chain(program).drop(1).map(compile).value()
-    body = _.dropRight(exps).concat("return #{_.last(exps)}")
+    body = _.dropRight(exps).concat("return #{_.last(exps)};")
     bodyStr = body.join(";\n")
     "(function () { #{bodyStr} })()"
   else if _.first(program) == 'var'
