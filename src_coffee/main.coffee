@@ -2,6 +2,7 @@
 # Imports
 #############################################
 __ = require './utils'
+beautify = require('js-beautify').js_beautify
 Parser = require './parser'
 
 inconsolata = Utils.loadWebFont("Inconsolata")
@@ -244,10 +245,16 @@ class Editor
     @go('out')
   compile: () ->
     if @currentSExp?
-      output = compile(@currentSExp.program)
+      compiledSource = beautify(compile(@currentSExp.program), { indent_size: 2 })
+      @compiledBox.text = compiledSource
       console.log("[*] INPUT\n", @currentSExp.program)
-      console.log("[*] OUTPUT\n", output)
-      @compiledBox.text = output
+      console.log("[*] COMPILED\n", compiledSource)
+      try
+        output = eval(compiledSource)
+        @outputBox.text = output
+        console.log("[*] OUTPUT\n", output)
+      catch error
+        console.error("[!] OUTPUT\n", error.toString())
     else
       console.log '[!] No expression selected.'
 
