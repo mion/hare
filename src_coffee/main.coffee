@@ -223,8 +223,6 @@ class Editor
 
 editor = new Editor
 
-# editor.goIn()
-
 key =
   h: 72
   i: 73
