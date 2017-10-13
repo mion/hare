@@ -188,6 +188,34 @@ class Editor
     @tokenGroup.x = Align.center
     @tokenGroup.y = Align.center
     @currentSExp = null
+    @compiledBox = new TextLayer
+      text: 'compiled'
+      fontSize: 13
+      fontFamily: inconsolata
+      textAlign: 'left'
+      x: @tokenGroup.x
+      y: __.belowY(@tokenGroup, 10)
+      width: @tokenGroup.width / 2
+      height: (Screen.height / 2) - (2 * 10) - @tokenGroup.height
+      color: '#000'
+      backgroundColor: '#F6F6F6'
+      padding: 10
+      borderColor: '#000'
+      borderWidth: 1
+    @outputBox = new TextLayer
+      text: 'output'
+      fontSize: 13
+      fontFamily: inconsolata
+      textAlign: 'left'
+      x: __.afterX(@compiledBox, 10)
+      y: __.belowY(@tokenGroup, 10)
+      width: @tokenGroup.width / 2
+      height: (Screen.height / 2) - (2 * 10) - @tokenGroup.height
+      color: '#000'
+      backgroundColor: '#F6F6F6'
+      padding: 10
+      borderColor: '#000'
+      borderWidth: 1
     console.log(@rootSExp)
   go: (dir) ->
     targetSExp = if _.isNil(@currentSExp)
@@ -216,8 +244,10 @@ class Editor
     @go('out')
   compile: () ->
     if @currentSExp?
+      output = compile(@currentSExp.program)
       console.log("[*] INPUT\n", @currentSExp.program)
-      console.log("[*] OUTPUT\n", compile(@currentSExp.program))
+      console.log("[*] OUTPUT\n", output)
+      @compiledBox.text = output
     else
       console.log '[!] No expression selected.'
 

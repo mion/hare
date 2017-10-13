@@ -18,5 +18,11 @@ module.exports =
   alignX: (layer, fixedLayer) ->
     layer.x = _middleX(fixedLayer.x) - layer.width / 2
 
-  above: (layer, fixedLayer, margin) ->
-    layer.y = fixedLayer.y - if _.isNil(margin) then layer.height else margin
+  afterX: (fixedLayer, margin) ->
+    fixedLayer.x + fixedLayer.width + (if not margin? then 0 else margin)
+
+  aboveY: (fixedLayer, margin) ->
+    fixedLayer.y - fixedLayer.height - (if not margin? then 0 else margin)
+
+  belowY: (fixedLayer, margin) ->
+    fixedLayer.y + fixedLayer.height + (if not margin? then 0 else margin)
