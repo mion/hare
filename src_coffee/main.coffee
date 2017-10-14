@@ -279,7 +279,7 @@ class Editor
     if @go('in') && @currentSExp != @rootSExp
       @currentPosition.unshift(0)
   goOut: () ->
-    if @go('out') && @currentSExp != @rootSExp
+    if @go('out') && @currentSExp != null
       @currentPosition.shift()
   compile: () ->
     if @currentSExp?
