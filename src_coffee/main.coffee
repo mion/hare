@@ -174,6 +174,25 @@ _walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
   # _walk(_.first(sexp.children), callback, visited, [null, downIndex])
 
 ############################################
+# CODE EDITION
+set = (program, position, value) ->
+  lg "set(#{program}, #{position}, #{value})"
+  idx = position.pop()
+  if idx?
+    if _.isEmpty? position
+      program[idx] = value
+    else
+      set(program[idx], position, value)
+
+getSexp = (sexp, position) ->
+  lg "getSexp<#{sexp}><#{position}>"
+  idx = position.pop()
+  if idx?
+    getSexp(sexp.children[idx], position)
+  else
+    sexp
+
+############################################
 # EDITOR
 class Editor
   constructor: () ->
@@ -215,6 +234,10 @@ class Editor
     @tokenGroup.width = _.reduce(_.map(@rootSExp.tokens, (t) -> t.width), _.add, 0)
     @tokenGroup.x = Align.center
     @tokenGroup.y = (Screen.height / 2) - @tokenGroup.height - 10
+  jump: (pos) ->
+    @currentPosition = _.clone(pos)
+    newSexp = getSexp(@rootSExp, pos)
+    @setCurrentSExp(newSexp)
   go: (dir) ->
     return false if _.isNil(@currentSExp) and dir isnt 'in'
     targetSExp = if _.isNil(@currentSExp)
@@ -227,16 +250,25 @@ class Editor
         out: @currentSExp.parent
       }[dir]
     if targetSExp?
-      walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
-      @currentSExp = targetSExp
-      walk @currentSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.select(visitedTokenById, siblingIndex, parentIndex)
+      # walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
+      # @currentSExp = targetSExp
+      # walk @currentSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.select(visitedTokenById, siblingIndex, parentIndex)
+      @setCurrentSExp(targetSExp)
       return true
     else if @currentSExp == @rootSExp and dir == 'out'
-      walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
-      @currentSExp = null
+      @setCurrentSExp(null)
+      # walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
+      # @currentSExp = null
       return true
     else
       return false
+  setCurrentSExp: (newSexp) ->
+    walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
+    if newSexp?
+      @currentSExp = newSexp
+      walk @currentSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.select(visitedTokenById, siblingIndex, parentIndex)
+    else
+      @currentSExp = null
   goNext: () ->
     if @go('next')
       @currentPosition[0] += 1
@@ -244,10 +276,10 @@ class Editor
     if @go('previous')
       @currentPosition[0] -= 1
   goIn: () ->
-    if @go('in')
+    if @go('in') && @currentSExp != @rootSExp
       @currentPosition.unshift(0)
   goOut: () ->
-    if @go('out')
+    if @go('out') && @currentSExp != @rootSExp
       @currentPosition.shift()
   compile: () ->
     if @currentSExp?
@@ -265,13 +297,18 @@ class Editor
         @outputBox.text = error.toString()
     else
       console.log '[!] No expression selected.'
-    lg 'currentPosition', @currentPosition
   replace: () ->
     sexp = @currentSExp
     if sexp?
-      replacement = prompt("Replace '#{sexp}' with what?")
-      if replacement?
-        lg replacement
+      value = prompt("Replace '#{sexp}' with what?")
+      if value?
+        window.prog = @program
+        pos = _.clone(@currentPosition)
+        set(@program, _.clone(pos), value)
+        lg 'currentPosition: ', pos
+        @build(@program)
+        @jump(_.clone(pos))
+        lg @program
 
 editor = new Editor
 
@@ -310,6 +347,7 @@ class KeyHandler
       delete @isDown[event.keyCode]
     Events.wrap(window).addEventListener 'keydown', (event) =>
       console.log 'key down', event.keyCode
+      currPos = _.clone(editor.currentPosition)
       @isDown[event.keyCode] = true
       if event.keyCode is KeyForCommand.GO_IN
         @editor.goIn()
@@ -323,6 +361,7 @@ class KeyHandler
         @editor.compile()
       if event.keyCode is KeyForCommand.REPLACE
         @editor.replace()
+      lg "pos: #{currPos} -> #{editor.currentPosition}"
 
 keyHandler = new KeyHandler(editor)
 
