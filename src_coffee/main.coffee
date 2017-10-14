@@ -119,7 +119,7 @@ compile = (program) ->
   else if program[0] == 'func'
     args = program[1].join(', ')
     rest = _.chain(program).drop(2).map(compile).value()
-    "function (#{args}) { return (#{rest}); }"
+    "function (#{args}) { return #{rest}; }"
   else if program[0] == '*'
     "(#{program[1]}) * (#{program[2]})"
   else
@@ -208,6 +208,7 @@ class Editor
       borderWidth: 1
   build: (program) ->
     @program = program
+    @currentPosition = []
     @currentSExp = null
     @rootSExp = render @program, 0, 0, [], null, @tokenGroup
     @tokenGroup.height = @rootSExp.tokens[0].height
@@ -215,6 +216,7 @@ class Editor
     @tokenGroup.x = Align.center
     @tokenGroup.y = (Screen.height / 2) - @tokenGroup.height - 10
   go: (dir) ->
+    return false if _.isNil(@currentSExp) and dir isnt 'in'
     targetSExp = if _.isNil(@currentSExp)
       @rootSExp
     else
@@ -228,31 +230,42 @@ class Editor
       walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
       @currentSExp = targetSExp
       walk @currentSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.select(visitedTokenById, siblingIndex, parentIndex)
-    else if @currentSExp == @rootSExp
+      return true
+    else if @currentSExp == @rootSExp and dir == 'out'
       walk @rootSExp, (sexp, visitedTokenById, siblingIndex, parentIndex) -> sexp.deselect(visitedTokenById, siblingIndex, parentIndex)
       @currentSExp = null
+      return true
+    else
+      return false
   goNext: () ->
-    @go('next')
+    if @go('next')
+      @currentPosition[0] += 1
   goPrevious: () ->
-    @go('previous')
+    if @go('previous')
+      @currentPosition[0] -= 1
   goIn: () ->
-    @go('in')
+    if @go('in')
+      @currentPosition.unshift(0)
   goOut: () ->
-    @go('out')
+    if @go('out')
+      @currentPosition.shift()
   compile: () ->
     if @currentSExp?
-      compiledSource = beautify(compile(@currentSExp.program), { indent_size: 2 })
+      compiledSource = compile(@currentSExp.program)
+      beautifulSource = beautify(compiledSource, { indent_size: 2 })
       @compiledBox.text = compiledSource
       console.log("[*] INPUT\n", @currentSExp.program)
       console.log("[*] COMPILED\n", compiledSource)
       try
         output = eval(compiledSource)
         @outputBox.text = output
-        console.log("[*] OUTPUT\n", output)
+        console.log "[*] RUN OK\n", output
       catch error
-        console.error("[!] OUTPUT\n", error.toString())
+        console.log "[!] RUN ERROR\n", error
+        @outputBox.text = error.toString()
     else
       console.log '[!] No expression selected.'
+    lg 'currentPosition', @currentPosition
   replace: () ->
     sexp = @currentSExp
     if sexp?
