@@ -15,15 +15,15 @@
     };
 
     Parser.prototype.atomize = function(token) {
-      if (token === "true") {
-        return true;
-      }
-      if (token === "false") {
-        return false;
-      }
-      if (!_.isNaN(parseInt(token))) {
-        return parseInt(token);
-      }
+      // if (token === "true") {
+      //   return true;
+      // }
+      // if (token === "false") {
+      //   return false;
+      // }
+      // if (!_.isNaN(parseInt(token))) {
+      //   return parseInt(token);
+      // }
       return token;
     };
 
@@ -57,6 +57,10 @@
 
   module.exports = {
     Parser: Parser,
+    parse: function (str) {
+      var parser = new Parser(str);
+      return parser.parse();
+    },
     test: function() {
       var parse, test;
       parse = function(str) {

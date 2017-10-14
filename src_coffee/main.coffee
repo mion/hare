@@ -302,7 +302,7 @@ class Editor
     if sexp?
       rawValue = prompt("Replace '#{sexp}' with what?")
       if rawValue?
-        value = JSON.parse(rawValue)
+        value = Parser.parse(rawValue)
         lg 'Value: ', value
         window.prog = @program
         pos = _.clone(@currentPosition)
