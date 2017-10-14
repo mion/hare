@@ -151,7 +151,7 @@ render = (exp, x, y, tokens, parentSExp, tokenGroup) ->
 # WALK
 #   TODO: remove these variables from the function header: visitedSExpressionById visitedTokenById
 walk = (sexp, callback) ->
-  console.log "walking from: ", sexp.toString()
+  # console.log "walking from: ", sexp.toString()
   visitedSExpressionById = {}
   visitedTokenById = {}
   _walk(sexp, callback, visitedSExpressionById, visitedTokenById, [0, 0])
@@ -300,8 +300,10 @@ class Editor
   replace: () ->
     sexp = @currentSExp
     if sexp?
-      value = prompt("Replace '#{sexp}' with what?")
-      if value?
+      rawValue = prompt("Replace '#{sexp}' with what?")
+      if rawValue?
+        value = JSON.parse(rawValue)
+        lg 'Value: ', value
         window.prog = @program
         pos = _.clone(@currentPosition)
         set(@program, _.clone(pos), value)
@@ -343,7 +345,7 @@ class KeyHandler
   constructor: (@editor) ->
     @isDown = {}
     Events.wrap(window).addEventListener 'keyup', (event) =>
-      console.log 'key up', event.keyCode
+      # console.log 'key up', event.keyCode
       delete @isDown[event.keyCode]
     Events.wrap(window).addEventListener 'keydown', (event) =>
       console.log 'key down', event.keyCode
@@ -361,7 +363,7 @@ class KeyHandler
         @editor.compile()
       if event.keyCode is KeyForCommand.REPLACE
         @editor.replace()
-      lg "pos: #{currPos} -> #{editor.currentPosition}"
+      lg "current position",  editor.currentPosition
 
 keyHandler = new KeyHandler(editor)
 
