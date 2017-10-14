@@ -35,6 +35,9 @@ class SExpression
       if not visitedTokenById[token.id]
         visitedTokenById[token.id] = true
         token.deselect()
+  destroy: () ->
+    _.each @tokens, (token) ->
+      token.destroy()
 
 class SAtom extends SExpression
   constructor: (token, parent, program) ->
@@ -228,6 +231,7 @@ class Editor
   build: (program) ->
     @program = program
     @currentPosition = []
+    @rootSExp.destroy() if @rootSExp?
     @currentSExp = null
     @rootSExp = render @program, 0, 0, [], null, @tokenGroup
     @tokenGroup.height = @rootSExp.tokens[0].height
