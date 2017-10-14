@@ -9,6 +9,8 @@ inconsolata = Utils.loadWebFont("Inconsolata")
 
 Parser.test()
 
+lg = console.log
+
 class SExpression
   constructor: (@tokens, @parent, @program) ->
     @id = _.uniqueId('sexp_')
@@ -175,29 +177,16 @@ _walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
 # EDITOR
 class Editor
   constructor: () ->
-    @program = [
-      'do',
-      ['var', "size", '32'],
-      ['var', "square",
-        ['func', ['x'], ['*', 'x', 'x']]],
-      ['square', 'size']
-    ]
     @tokenGroup = new Layer
-    @rootSExp = render @program, 0, 0, [], null, @tokenGroup
-    @tokenGroup.height = @rootSExp.tokens[0].height
-    @tokenGroup.width = _.reduce(_.map(@rootSExp.tokens, (t) -> t.width), _.add, 0)
-    @tokenGroup.x = Align.center
-    @tokenGroup.y = Align.center
-    @currentSExp = null
     @compiledBox = new TextLayer
       text: 'compiled'
       fontSize: 13
       fontFamily: inconsolata
       textAlign: 'left'
-      x: @tokenGroup.x
-      y: __.belowY(@tokenGroup, 10)
-      width: @tokenGroup.width / 2
-      height: (Screen.height / 2) - (2 * 10) - @tokenGroup.height
+      x: 0
+      y: Screen.height / 2
+      width: Screen.width / 2
+      height: Screen.height / 2
       color: '#000'
       backgroundColor: '#F6F6F6'
       padding: 10
@@ -208,16 +197,23 @@ class Editor
       fontSize: 13
       fontFamily: inconsolata
       textAlign: 'left'
-      x: __.afterX(@compiledBox, 10)
-      y: __.belowY(@tokenGroup, 10)
-      width: @tokenGroup.width / 2
-      height: (Screen.height / 2) - (2 * 10) - @tokenGroup.height
+      x: Screen.width / 2
+      y: Screen.height / 2
+      width: Screen.width / 2
+      height: Screen.height / 2
       color: '#000'
       backgroundColor: '#F6F6F6'
       padding: 10
       borderColor: '#000'
       borderWidth: 1
-    console.log(@rootSExp)
+  build: (program) ->
+    @program = program
+    @currentSExp = null
+    @rootSExp = render @program, 0, 0, [], null, @tokenGroup
+    @tokenGroup.height = @rootSExp.tokens[0].height
+    @tokenGroup.width = _.reduce(_.map(@rootSExp.tokens, (t) -> t.width), _.add, 0)
+    @tokenGroup.x = Align.center
+    @tokenGroup.y = (Screen.height / 2) - @tokenGroup.height - 10
   go: (dir) ->
     targetSExp = if _.isNil(@currentSExp)
       @rootSExp
@@ -257,8 +253,22 @@ class Editor
         console.error("[!] OUTPUT\n", error.toString())
     else
       console.log '[!] No expression selected.'
+  replace: () ->
+    sexp = @currentSExp
+    if sexp?
+      replacement = prompt("Replace '#{sexp}' with what?")
+      if replacement?
+        lg replacement
 
 editor = new Editor
+
+editor.build [
+  'do',
+  ['var', "size", '32'],
+  ['var', "square",
+    ['func', ['x'], ['*', 'x', 'x']]],
+  ['square', 'size']
+]
 
 key =
   h: 72
@@ -266,6 +276,7 @@ key =
   j: 74
   k: 75
   l: 76
+  r: 82
   space: 32
   enter: 13
   shift: 16
@@ -276,6 +287,7 @@ KeyForCommand =
   GO_PREVIOUS: key.h
   GO_NEXT: key.l
   COMPILE: key.enter
+  REPLACE: key.r
 
 class KeyHandler
   constructor: (@editor) ->
@@ -296,6 +308,8 @@ class KeyHandler
         @editor.goPrevious()
       if event.keyCode is KeyForCommand.COMPILE
         @editor.compile()
+      if event.keyCode is KeyForCommand.REPLACE
+        @editor.replace()
 
 keyHandler = new KeyHandler(editor)
 
