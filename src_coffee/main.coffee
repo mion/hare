@@ -119,6 +119,8 @@ compile = (program) ->
     "(function () { #{bodyStr} })()"
   else if _.first(program) == 'var'
     "var #{program[1]} = (#{compile(program[2])})"
+  else if _.first(program) == 'if'
+    "(#{compile(program[1])}) ? (#{compile(program[2])}) : (#{compile(program[3])})"
   else if program[0] == 'func'
     args = program[1].join(', ')
     rest = _.chain(program).drop(2).map(compile).value()
@@ -133,7 +135,7 @@ compile = (program) ->
     else
       program[0]
     "(#{compile(program[1])}) #{op} (#{compile(program[2])})"
-  else if program[0] == '^' || program[0] == 'ˆ'
+  else if (program[0] == '^' or program[0] == 'ˆ')
     "Math.pow(#{compile(program[1])}, #{compile(program[2])})"
   else if program[0] == 'not'
     "!(#{compile(program[1])})"
@@ -142,6 +144,7 @@ compile = (program) ->
     "#{program[0]}(#{arglist})"
 
 # compileTo '(* @a @b)', '(a) * (b)'
+# compileTo '^', 'Math.pow'
 
 ############################################
 # RENDER
