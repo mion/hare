@@ -133,7 +133,7 @@ compile = (program) ->
     else
       program[0]
     "(#{compile(program[1])}) #{op} (#{compile(program[2])})"
-  else if program[0] == '^'
+  else if program[0] == '^' || program[0] == 'ˆ'
     "Math.pow(#{compile(program[1])}, #{compile(program[2])})"
   else if program[0] == 'not'
     "!(#{compile(program[1])})"
