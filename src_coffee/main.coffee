@@ -177,25 +177,37 @@ _walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
   # _walk(_.first(sexp.children), callback, visited, [null, downIndex])
 
 ############################################
-# CODE EDITION
-set = (program, position, value) ->
-  # lg "set(#{program}, #{position}, #{value})"
-  idx = position.pop()
-  if idx?
-    if _.isEmpty? position
-      program[idx] = value
-    else
-      set(program[idx], position, value)
+# SExpression manipulation
 
-addSexp = (program, position, value, deltaIndex) ->
+spliceSexp = (program, position, value, deltaIndex, deleteCount) ->
   if _.isUndefined(deltaIndex)
     deltaIndex = 0
+  if _.isUndefined(deleteCount)
+    deleteCount = 0
+  _spliceSexp(program, _.clone(position), value, deltaIndex, deleteCount)
+
+_spliceSexp = (program, position, value, deltaIndex, deleteCount) ->
   idx = position.pop()
   if idx?
     if _.isEmpty? position
-      program.splice(idx + deltaIndex, 0, value)
+      if _.isUndefined? value
+        program.splice(idx + deltaIndex, deleteCount)
+      else
+        program.splice(idx + deltaIndex, deleteCount, value)
     else
-      addSexp(program[idx], position, value, deltaIndex)
+      _spliceSexp(program[idx], position, value, deltaIndex, deleteCount)
+
+deleteSexp = (program, position, value) ->
+  spliceSexp(program, position, undefined, 0, 1)
+
+replaceSexp = (program, position, value) ->
+  spliceSexp(program, position, value, 0, 1)
+
+addSexpBefore = (program, position, value) ->
+  spliceSexp(program, position, value, 0)
+
+addSexpAfter = (program, position, value) ->
+  spliceSexp(program, position, value, 1)
 
 getSexp = (sexp, position) ->
   # lg "getSexp<#{sexp}><#{position}>"
@@ -319,7 +331,7 @@ class Editor
         value = Parser.parse(rawValue)
         lg 'Value: ', value
         pos = _.clone(@currentPosition)
-        addSexp(@program, _.clone(pos), value)
+        addSexpBefore(@program, _.clone(pos), value)
         lg 'currentPosition: ', pos
         @build(@program)
         @jump(_.clone(pos))
@@ -332,11 +344,19 @@ class Editor
         value = Parser.parse(rawValue)
         lg 'Value: ', value
         pos = _.clone(@currentPosition)
-        addSexp(@program, _.clone(pos), value, 1)
+        addSexpAfter(@program, _.clone(pos), value, 1)
         lg 'currentPosition: ', pos
         @build(@program)
         @jump(_.clone(pos))
         lg @program
+  delete: () ->
+    sexp = @currentSExp
+    if sexp?
+      pos = _.clone(@currentPosition)
+      deleteSexp(@program, @currentPosition)
+      @build(@program)
+      pos.shift()
+      @jump(pos)
   replace: () ->
     sexp = @currentSExp
     if sexp?
@@ -345,7 +365,7 @@ class Editor
         value = Parser.parse(rawValue)
         lg 'Value: ', value
         pos = _.clone(@currentPosition)
-        set(@program, _.clone(pos), value)
+        replaceSexp(@program, _.clone(pos), value)
         lg 'currentPosition: ', pos
         @build(@program)
         @jump(_.clone(pos))
@@ -386,6 +406,7 @@ KeyForCommand =
   REPLACE: key.r
   ADD_BEFORE: key.a
   ADD_AFTER: key.i
+  DELETE: key.d
 
 class KeyHandler
   constructor: (@editor) ->
@@ -413,6 +434,8 @@ class KeyHandler
         @editor.addBefore()
       if event.keyCode is KeyForCommand.ADD_AFTER
         @editor.addAfter()
+      if event.keyCode is KeyForCommand.DELETE
+        @editor.delete()
       lg "current position",  editor.currentPosition
 
 keyHandler = new KeyHandler(editor)
