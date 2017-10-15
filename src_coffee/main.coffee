@@ -110,9 +110,27 @@ window.evaluate = evaluate
 
 ############################################
 # RENDER
+directJavaScript = (program) ->
+  hareToJs =
+    '^': 'Math.pow'
+    'ˆ': 'Math.pow'
+    'number?': '_.isNumber'
+    'integer?': '_.isInteger'
+    'string?': '_.isString'
+    'array?': '_.isArray'
+    'empty?': '_.isEmpty'
+    'undefined?': '_.isUndefined'
+    'nil?': '_.isNil'
+    'function?': '_.isFunction'
+    'object?': '_.isObject'
+    'date?': '_.isDate'
+  js = hareToJs[program]
+  if _.isUndefined(js) then program else js
+
 compile = (program) ->
-  return program unless _.isArray(program)
-  if _.first(program) == 'do'
+  if not _.isArray(program)
+    directJavaScript(program)
+  else if _.first(program) == 'do'
     exps = _.chain(program).drop(1).map(compile).value()
     body = _.dropRight(exps).concat("return #{_.last(exps)};")
     bodyStr = body.join(";\n")
@@ -135,29 +153,11 @@ compile = (program) ->
     else
       program[0]
     "(#{compile(program[1])}) #{op} (#{compile(program[2])})"
-  else if (program[0] == '^' or program[0] == 'ˆ')
-    "Math.pow(#{compile(program[1])}, #{compile(program[2])})"
   else if program[0] == 'not'
     "!(#{compile(program[1])})"
-  else if program[0] == 'number?'
-    "_.isNumber(#{compile(program[1])})"
-  else if program[0] == 'integer?'
-    "_.isInteger(#{compile(program[1])})"
-  else if program[0] == 'string?'
-    "_.isString(#{compile(program[1])})"
-  else if program[0] == 'array?'
-    "_.isArray(#{compile(program[1])})"
-  else if program[0] == 'date?'
-    "_.isDate(#{compile(program[1])})"
-  else if program[0] == 'empty?'
-    "_.isEmpty(#{compile(program[1])})"
-  else if program[0] == 'object?'
-    "_.isObject(#{compile(program[1])})"
-  else if program[0] == 'function?'
-    "_.isFunction(#{compile(program[1])})"
   else
     arglist = _.chain(program).tail().map(compile).value()
-    "#{program[0]}(#{arglist})"
+    "#{directJavaScript(program[0])}(#{arglist})"
 
 # patterns = [
 #   {hare: '(* @a @b)', js: '(@a) * (@b)'}
