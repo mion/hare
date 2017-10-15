@@ -139,11 +139,33 @@ compile = (program) ->
     "Math.pow(#{compile(program[1])}, #{compile(program[2])})"
   else if program[0] == 'not'
     "!(#{compile(program[1])})"
+  else if program[0] == 'number?'
+    "_.isNumber(#{compile(program[1])})"
+  else if program[0] == 'integer?'
+    "_.isInteger(#{compile(program[1])})"
+  else if program[0] == 'string?'
+    "_.isString(#{compile(program[1])})"
+  else if program[0] == 'array?'
+    "_.isArray(#{compile(program[1])})"
+  else if program[0] == 'date?'
+    "_.isDate(#{compile(program[1])})"
+  else if program[0] == 'empty?'
+    "_.isEmpty(#{compile(program[1])})"
+  else if program[0] == 'object?'
+    "_.isObject(#{compile(program[1])})"
+  else if program[0] == 'function?'
+    "_.isFunction(#{compile(program[1])})"
   else
     arglist = _.chain(program).tail().map(compile).value()
     "#{program[0]}(#{arglist})"
 
-# compileTo '(* @a @b)', '(a) * (b)'
+# patterns = [
+#   {hare: '(* @a @b)', js: '(@a) * (@b)'}
+# ]
+# compileRule = (harePat, jsPat) ->
+#   prog = Parser.parse(harePat)
+
+# compileTo '(* @a @b)', '(@a) * (@b)'
 # compileTo '^', 'Math.pow'
 
 ############################################
