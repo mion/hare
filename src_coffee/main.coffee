@@ -123,11 +123,25 @@ compile = (program) ->
     args = program[1].join(', ')
     rest = _.chain(program).drop(2).map(compile).value()
     "function (#{args}) { return #{rest}; }"
-  else if program[0] == '*'
-    "(#{program[1]}) * (#{program[2]})"
+  else if _.includes(Parser.parse('(* + - % < > <= >= = or and)'), program[0])
+    op = if '=' == program[0]
+      '==='
+    else if 'or' == program[0]
+      '||'
+    else if 'and' == program[0]
+      '&&'
+    else
+      program[0]
+    "(#{compile(program[1])}) #{op} (#{compile(program[2])})"
+  else if program[0] == '^'
+    "Math.pow(#{compile(program[1])}, #{compile(program[2])})"
+  else if program[0] == 'not'
+    "!(#{compile(program[1])})"
   else
     arglist = _.chain(program).tail().map(compile).value()
     "#{program[0]}(#{arglist})"
+
+# compileTo '(* @a @b)', '(a) * (b)'
 
 ############################################
 # RENDER
