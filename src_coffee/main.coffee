@@ -112,8 +112,37 @@ window.evaluate = evaluate
 # RENDER
 directJavaScript = (program) ->
   hareToJs =
+    'round': 'Math.round'
+    'floor': 'Math.floor'
+    'ceiling': 'Math.ceiling'
     '^': 'Math.pow'
     'ˆ': 'Math.pow'
+    'sqrt': 'Math.sqrt'
+    'max': 'Math.max'
+    'min': 'Math.min'
+    'cos': 'Math.cos'
+    'sin': 'Math.sin'
+    'tan': 'Math.tan'
+    'acos': 'Math.acos'
+    'asin': 'Math.asin'
+    'atan': 'Math.atan'
+    'log': 'Math.log'
+    'log10': 'Math.log10'
+    'E': 'Math.E'
+    'PI': 'Math.PI'
+    'random': 'Math.random'
+    'first': '_.first'
+    'last': '_.last'
+    'rest': '_.rest'
+    'tail': '_.tail'
+    'take': '_.take'
+    'drop': '_.drop'
+    'map': '_.map'
+    'sort': '_.sort'
+    'each': '_.each'
+    'filter': '_.filter'
+    'reject': '_.reject'
+    'reduce': '_.reduce'
     'number?': '_.isNumber'
     'integer?': '_.isInteger'
     'string?': '_.isString'
@@ -139,6 +168,8 @@ compile = (program) ->
     "var #{program[1]} = (#{compile(program[2])})"
   else if _.first(program) == 'if'
     "(#{compile(program[1])}) ? (#{compile(program[2])}) : (#{compile(program[3])})"
+  else if program[0] == 'list'
+    ["["] + _.map(program.slice(1), compile).join(", ") + ["]"]
   else if program[0] == 'func'
     args = program[1].join(', ')
     rest = _.chain(program).drop(2).map(compile).value()
@@ -164,7 +195,6 @@ compile = (program) ->
 # ]
 # compileRule = (harePat, jsPat) ->
 #   prog = Parser.parse(harePat)
-
 # compileTo '(* @a @b)', '(@a) * (@b)'
 # compileTo '^', 'Math.pow'
 
