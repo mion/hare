@@ -179,7 +179,7 @@ _walk = (sexp, callback, visitedSExpressionById, visitedTokenById, indexPair) ->
 ############################################
 # CODE EDITION
 set = (program, position, value) ->
-  lg "set(#{program}, #{position}, #{value})"
+  # lg "set(#{program}, #{position}, #{value})"
   idx = position.pop()
   if idx?
     if _.isEmpty? position
@@ -187,8 +187,16 @@ set = (program, position, value) ->
     else
       set(program[idx], position, value)
 
+addSexp = (program, position, value) ->
+  idx = position.pop()
+  if idx?
+    if _.isEmpty? position
+      program.splice(idx, 0, value)
+    else
+      addSexp(program[idx], position, value)
+
 getSexp = (sexp, position) ->
-  lg "getSexp<#{sexp}><#{position}>"
+  # lg "getSexp<#{sexp}><#{position}>"
   idx = position.pop()
   if idx?
     getSexp(sexp.children[idx], position)
@@ -301,6 +309,19 @@ class Editor
         @outputBox.text = error.toString()
     else
       console.log '[!] No expression selected.'
+  add: () ->
+    sexp = @currentSExp
+    if sexp?
+      rawValue = prompt("Add what?")
+      if rawValue?
+        value = Parser.parse(rawValue)
+        lg 'Value: ', value
+        pos = _.clone(@currentPosition)
+        addSexp(@program, _.clone(pos), value)
+        lg 'currentPosition: ', pos
+        @build(@program)
+        @jump(_.clone(pos))
+        lg @program
   replace: () ->
     sexp = @currentSExp
     if sexp?
@@ -308,7 +329,6 @@ class Editor
       if rawValue?
         value = Parser.parse(rawValue)
         lg 'Value: ', value
-        window.prog = @program
         pos = _.clone(@currentPosition)
         set(@program, _.clone(pos), value)
         lg 'currentPosition: ', pos
@@ -333,6 +353,11 @@ key =
   k: 75
   l: 76
   r: 82
+  a: 65
+  w: 87
+  s: 83
+  d: 68
+  ";": 186
   space: 32
   enter: 13
   shift: 16
@@ -344,6 +369,7 @@ KeyForCommand =
   GO_NEXT: key.l
   COMPILE: key.enter
   REPLACE: key.r
+  ADD: key.a
 
 class KeyHandler
   constructor: (@editor) ->
@@ -367,6 +393,8 @@ class KeyHandler
         @editor.compile()
       if event.keyCode is KeyForCommand.REPLACE
         @editor.replace()
+      if event.keyCode is KeyForCommand.ADD
+        @editor.add()
       lg "current position",  editor.currentPosition
 
 keyHandler = new KeyHandler(editor)
