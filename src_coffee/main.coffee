@@ -221,7 +221,6 @@ getSexp = (sexp, position) ->
 # EDITOR
 class Editor
   constructor: () ->
-    @tokenGroup = new Layer
     @compiledBox = new TextLayer
       text: 'compiled'
       fontSize: 13
@@ -251,10 +250,12 @@ class Editor
       borderColor: '#000'
       borderWidth: 1
   build: (program) ->
+    if not _.isUndefined(@tokenGroup)
+      @tokenGroup.destroy()
     @program = program
     @currentPosition = []
-    @rootSExp.destroy() if @rootSExp?
     @currentSExp = null
+    @tokenGroup = new Layer
     @rootSExp = render @program, 0, 0, [], null, @tokenGroup
     @tokenGroup.height = @rootSExp.tokens[0].height
     @tokenGroup.width = _.reduce(_.map(@rootSExp.tokens, (t) -> t.width), _.add, 0)
@@ -350,8 +351,7 @@ class Editor
         @jump(_.clone(pos))
         lg @program
   delete: () ->
-    sexp = @currentSExp
-    if sexp?
+    if @currentSExp?
       pos = _.clone(@currentPosition)
       deleteSexp(@program, @currentPosition)
       @build(@program)
