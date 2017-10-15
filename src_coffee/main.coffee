@@ -187,13 +187,15 @@ set = (program, position, value) ->
     else
       set(program[idx], position, value)
 
-addSexp = (program, position, value) ->
+addSexp = (program, position, value, deltaIndex) ->
+  if _.isUndefined(deltaIndex)
+    deltaIndex = 0
   idx = position.pop()
   if idx?
     if _.isEmpty? position
-      program.splice(idx, 0, value)
+      program.splice(idx + deltaIndex, 0, value)
     else
-      addSexp(program[idx], position, value)
+      addSexp(program[idx], position, value, deltaIndex)
 
 getSexp = (sexp, position) ->
   # lg "getSexp<#{sexp}><#{position}>"
@@ -309,7 +311,7 @@ class Editor
         @outputBox.text = error.toString()
     else
       console.log '[!] No expression selected.'
-  add: () ->
+  addBefore: () ->
     sexp = @currentSExp
     if sexp?
       rawValue = prompt("Add what?")
@@ -318,6 +320,19 @@ class Editor
         lg 'Value: ', value
         pos = _.clone(@currentPosition)
         addSexp(@program, _.clone(pos), value)
+        lg 'currentPosition: ', pos
+        @build(@program)
+        @jump(_.clone(pos))
+        lg @program
+  addAfter: () ->
+    sexp = @currentSExp
+    if sexp?
+      rawValue = prompt("Add what?")
+      if rawValue?
+        value = Parser.parse(rawValue)
+        lg 'Value: ', value
+        pos = _.clone(@currentPosition)
+        addSexp(@program, _.clone(pos), value, 1)
         lg 'currentPosition: ', pos
         @build(@program)
         @jump(_.clone(pos))
@@ -369,7 +384,8 @@ KeyForCommand =
   GO_NEXT: key.l
   COMPILE: key.enter
   REPLACE: key.r
-  ADD: key.a
+  ADD_BEFORE: key.a
+  ADD_AFTER: key.i
 
 class KeyHandler
   constructor: (@editor) ->
@@ -393,8 +409,10 @@ class KeyHandler
         @editor.compile()
       if event.keyCode is KeyForCommand.REPLACE
         @editor.replace()
-      if event.keyCode is KeyForCommand.ADD
-        @editor.add()
+      if event.keyCode is KeyForCommand.ADD_BEFORE
+        @editor.addBefore()
+      if event.keyCode is KeyForCommand.ADD_AFTER
+        @editor.addAfter()
       lg "current position",  editor.currentPosition
 
 keyHandler = new KeyHandler(editor)
