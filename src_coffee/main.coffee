@@ -147,6 +147,7 @@ directJavaScript = (program) ->
     'integer?': '_.isInteger'
     'string?': '_.isString'
     'array?': '_.isArray'
+    'list?': '_.isArray'
     'empty?': '_.isEmpty'
     'undefined?': '_.isUndefined'
     'nil?': '_.isNil'
@@ -417,14 +418,15 @@ class Editor
         addSexpAfter(@program, _.clone(pos), value, 1)
         lg 'currentPosition: ', pos
         @build(@program)
-        @jump(_.clone(pos))
+        # pos[0] += 1 if pos[0]
+        @jump(pos)
         lg @program
   delete: () ->
     if @currentSExp?
       pos = _.clone(@currentPosition)
       deleteSexp(@program, @currentPosition)
       @build(@program)
-      pos.shift()
+      pos[0] -= 1 if pos[0] > 0
       @jump(pos)
   replace: () ->
     sexp = @currentSExp
