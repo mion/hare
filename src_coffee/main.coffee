@@ -67,7 +67,7 @@ class Token extends TextLayer
       y: y
       color: @TEXT_COLOR_DESELECTED
       backgroundColor: @BACKGROUND_COLOR_DESELECTED
-      padding: 10
+      padding: 7
   select: (siblingIndex, parentIndex) ->
     # console.log "'#{@text}'\n\t-->\t(#{siblingIndex}, #{parentIndex})"
     if siblingIndex == 0 && parentIndex == 0
@@ -326,6 +326,7 @@ class Editor
     @currentPosition = []
     @currentSExp = null
     @tokenGroup = new Layer
+      backgroundColor: 'rgba(255, 255, 255, 0.0)'
     @rootSExp = render @program, 0, 0, [], null, @tokenGroup
     @tokenGroup.height = @rootSExp.tokens[0].height
     @tokenGroup.width = _.reduce(_.map(@rootSExp.tokens, (t) -> t.width), _.add, 0)
@@ -373,11 +374,16 @@ class Editor
     if @go('previous')
       @currentPosition[0] -= 1
   goIn: () ->
+    sexp = @currentSExp
     if @go('in') && @currentSExp != @rootSExp
       @currentPosition.unshift(0)
+      @detach(sexp)
   goOut: () ->
+    sexp = @currentSExp
     if @go('out') && @currentSExp != null
       @currentPosition.shift()
+      lg 'retach: ', @currentSExp
+      @retach(@currentSExp)
   compile: () ->
     if @currentSExp?
       compiledSource = compile(@currentSExp.program)
@@ -441,6 +447,42 @@ class Editor
         @build(@program)
         @jump(_.clone(pos))
         lg @program
+  detach: (sexp) ->
+    dy = 50
+    @tokenGroup.animate
+      y: @tokenGroup.y - dy
+    _.each sexp.tokens, (token) ->
+      token.animate
+        x: token.x
+        y: token.y + dy
+  retach: (sexp) ->
+    dy = 50
+    @tokenGroup.animate
+      y: @tokenGroup.y + dy
+    _.each sexp.tokens, (token) ->
+      token.animate
+        x: token.x
+        y: token.y - dy
+    # parentOnlyTokens = _.xor(sexp.parent.tokens, sexp.tokens)
+    # _.each parentOnlyTokens, (token) ->
+    #   token.animate
+    #     x: token.x
+    #     y: token.y + dy
+
+    # @tokenGroup.animate
+    #   y: @tokenGroup.y + dy
+
+# class Group extends Layer
+#   constructor: (layers) ->
+#     minX = _.min(_.map(layers, 'x'))
+#     minY = _.min(_.map(layers, 'y'))
+#     super
+#       backgroundColor: 'rgba(255,255,255,0.0)'
+#       x: minX
+#       y: minY
+#       width: _.max(_.map(layers, (l) -> l.x + l.width - minX))
+#       height: _.max(_.map(layers, (l) -> l.y + l.height - minY))
+#     _.each layers, (l) -> l.parent = this
 
 editor = new Editor
 
@@ -478,6 +520,7 @@ KeyForCommand =
   ADD_BEFORE: key.a
   ADD_AFTER: key.i
   DELETE: key.d
+  DETACH: key.space
 
 class KeyHandler
   constructor: (@editor) ->
@@ -507,6 +550,8 @@ class KeyHandler
         @editor.addAfter()
       if event.keyCode is KeyForCommand.DELETE
         @editor.delete()
+      if event.keyCode is KeyForCommand.DETACH
+        @editor.detach()
       lg "current position",  editor.currentPosition
 
 keyHandler = new KeyHandler(editor)
