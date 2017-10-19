@@ -4,11 +4,9 @@
 __ = require './utils'
 beautify = require('js-beautify').js_beautify
 Parser = require './parser'
-
-inconsolata = Utils.loadWebFont("Inconsolata")
-
 Parser.test()
 
+inconsolata = Utils.loadWebFont("Inconsolata")
 lg = console.log
 
 class SExpression
