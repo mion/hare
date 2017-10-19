@@ -201,8 +201,11 @@ compile = (program) ->
 
 ############################################
 # RENDER
+isAtom = (exp) ->
+  _.isString(exp) or _.isNumber(exp) or _.isBoolean(exp)
+
 render = (exp, x, y, tokens, parentSExp, tokenGroup) ->
-  if _.isString(exp)
+  if isAtom(exp)
     str = new Token(exp, x, y, tokenGroup)
     tokens.push(str)
     return new SAtom(str, parentSExp, exp)

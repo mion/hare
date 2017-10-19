@@ -30,20 +30,21 @@ class Parser
 
 module.exports =
   Parser: Parser
+  parse: (str) ->
+    parser = new Parser(str)
+    parser.parse()
   test: ->
-    parse = (str) ->
-      parser = new Parser(str)
-      parser.parse()
     test = (fn, args..., expected) ->
       actual = fn(args...)
       if _.isEqual(actual, expected)
         console.log "[*] Test OK"
       else
         console.log "[!] Test failed!\n    Expected: `#{expected}` (#{typeof expected})\n    Actual: `#{actual}` (#{typeof actual})"
-    test parse, "hi", "hi"
-    test parse, "()", []
-    test parse, "(hi)", ["hi"]
-    test parse, "(hello there)", ["hello", "there"]
-    test parse, "(hello 'there)", ["hello", "'there"]
-    test parse, "(hello (1 2 3))", ["hello", [1, 2, 3]]
-    test parse, "(hello (my good) old friend ())", ["hello", ["my", "good"], "old", "friend", []]
+    test this.parse, "hi", "hi"
+    test this.parse, "12", 12
+    test this.parse, "()", []
+    test this.parse, "(hi)", ["hi"]
+    test this.parse, "(hello there)", ["hello", "there"]
+    test this.parse, "(hello 'there)", ["hello", "'there"]
+    test this.parse, "(hello (1 2 3))", ["hello", [1, 2, 3]]
+    test this.parse, "(hello (my good) old friend ())", ["hello", ["my", "good"], "old", "friend", []]
