@@ -4,10 +4,14 @@
 __ = require './utils'
 beautify = require('js-beautify').js_beautify
 Parser = require './parser'
-Parser.test()
+Tests = require './tests'
 
 inconsolata = Utils.loadWebFont("Inconsolata")
 lg = console.log
+
+# tests
+Parser.test()
+Tests.run()
 
 class SExpression
   constructor: (@tokens, @parent, @program) ->
@@ -425,7 +429,8 @@ class Editor
         addSexpAfter(@program, _.clone(pos), value, 1)
         lg 'currentPosition: ', pos
         @build(@program)
-        # pos[0] += 1 if pos[0]
+        if pos.length > 0
+          pos[0] += 1
         @jump(pos)
         lg @program
   delete: () ->

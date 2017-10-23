@@ -1,3 +1,64 @@
+# class Expression
+#   constructor: (@id, @context) ->
+#     @context.expression_by_id[@id] = this
+#
+# class Atom extends Expression
+#   constructor: (@string, @context) ->
+#     @id = _.uniqueId('Atom_')
+#     super @id, @context
+#
+# class List extends Expression
+#   constructor: (@context) ->
+#     @id = _.uniqueId('List_')
+#     super @id, @context
+#
+# class Context
+#   constructor: () ->
+#     @expression_by_id = []
+#     @root_id = null
+#     @cursor_id = null
+#     @parent_of = {}
+#     @children_of = {}
+#     @previous_of = {}
+#     @next_of = {}
+#     @layer_of = {}
+#   push: (list, exp) ->
+#     @parent_of[exp.id] = list.id
+#     @children_of[list.id] = [] if _.isUndefined(@children_of[list.id])
+#     @children_of[list.id].push(exp.id)
+#     if @children_of[list.id].length > 1
+#       before_exp = _.last(_.dropRight(@children_of[list.id]))
+#       @previous_of[exp.id] = before_exp.id
+#       @next_of[before_exp.id] = exp.id
+#
+# class StringParser
+#   constructor: (@string) ->
+#     @context = new Context()
+#
+#   tokenize: (string) ->
+#     # input -> '(fn (s) (+ "hello " s))'
+#     # output -> ['(', 'fn', '(', 's', ')', '(', '"hello', '"', 's', ')']
+#     string.replace(/\(/g, "( ").replace(/\)/g, " )").split(" ").filter (str) -> str isnt ""
+#
+#   readFrom: (tokens, context) ->
+#     throw new SyntaxError("unexpected EOF while reading") if _.isEmpty(tokens)
+#     token = tokens.shift()
+#     if token is "("
+#       list = new List(context)
+#       while tokens[0] isnt ")"
+#         @context.push(list, @readFrom(tokens, context))
+#       tokens.shift()
+#       return list
+#     else if token is ")"
+#       throw new SyntaxError("unexpected )")
+#     else
+#       return new Atom(token, context)
+#
+#   parse: ->
+#     exp = @readFrom(@tokenize(@string), @context)
+#     @context.root_id = exp.id
+
+
 class Parser
   constructor: (@string) ->
 
