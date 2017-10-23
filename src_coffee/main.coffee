@@ -4,14 +4,9 @@
 __ = require './utils'
 beautify = require('js-beautify').js_beautify
 Parser = require './parser'
-Tests = require './tests'
 
 inconsolata = Utils.loadWebFont("Inconsolata")
 lg = console.log
-
-# tests
-Parser.test()
-Tests.run()
 
 class SExpression
   constructor: (@tokens, @parent, @program) ->
@@ -455,20 +450,21 @@ class Editor
         lg @program
   detach: (sexp) ->
     dy = 50
-    @tokenGroup.animate
-      y: @tokenGroup.y - dy
-    _.each sexp.tokens, (token) ->
-      token.animate
-        x: token.x
-        y: token.y + dy
+    # @tokenGroup.animate
+    #   y: @tokenGroup.y - dy
+    # _.each sexp.tokens, (token) ->
+    #   token.animate
+    #     x: token.x
+    #     y: token.y + dy
   retach: (sexp) ->
     dy = 50
-    @tokenGroup.animate
-      y: @tokenGroup.y + dy
-    _.each sexp.tokens, (token) ->
-      token.animate
-        x: token.x
-        y: token.y - dy
+    # @tokenGroup.animate
+    #   y: @tokenGroup.y + dy
+    # _.each sexp.tokens, (token) ->
+    #   token.animate
+    #     x: token.x
+    #     y: token.y - dy
+
     # parentOnlyTokens = _.xor(sexp.parent.tokens, sexp.tokens)
     # _.each parentOnlyTokens, (token) ->
     #   token.animate
