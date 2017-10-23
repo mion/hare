@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "The goal of this project is creating a simple simulation of a world. Its inhabitants are creatures that they behave in human-like ways.",
   "main": "main.js",
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
     "beefy": "^2.1.8",
     "browserify": "^14.4.0",
+    "chai": "^4.1.2",
     "coffee-script": "^1.12.7",
     "coffeeify": "^2.1.0"
   },
