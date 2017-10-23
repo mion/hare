@@ -1,23 +1,28 @@
+################################################################################
+# imports
 __ = require './utils'
 chai = require('chai')
 hare = require('./hare')
 
+################################################################################
+# alias
 lg = console.log
 
-test_results = []
+################################################################################
+# tests
+lg('Running tests...')
+
 tests =
-  hare:
-    tokenize:
-      '(1 2 3)': ['[', '1', '2', '3', ']']
+  tokenize:
+    '(1 2 3)': ['[', '1', '2', '3', ']']
 
-_.each tests, (test) ->
-  try
-    chai.expect(test.in).to.deep.equal(test.out)
-    console.log("☑ #{test.name}")
-  catch error
-    console.error("☒ #{test.name}")
+_.each tests, (out_by_in, func_name) ->
+  _.each out_by_in, (output, input) ->
+    try
+      func = hare[func_name]
+      chai.expect(func(input)).to.deep.equal(output)
+      console.log("☑ #{test.name}")
+    catch error
+      console.error("☒ #{test.name}")
 
-module.exports =
-  run: () ->
-    lg('Running tests...')
-    lg(tests)
+lg(tests)
