@@ -8,8 +8,6 @@ Parser = require './parser'
 inconsolata = Utils.loadWebFont("Inconsolata")
 lg = console.log
 
-lg 'OK'
-
 class SExpression
   constructor: (@tokens, @parent, @program) ->
     @id = _.uniqueId('sexp_')
