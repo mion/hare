@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Run this file either after or before 'run_server'. Both must be running.
+
+# Compile CoffeeScript while watching for file changes, adding the source map into the same JS files
+coffee --watch --compile -M -o test/ src_coffee/test_*.coffee

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Run this file either after or before 'run_coffee'. Both must be running.
+
+# Start budo server on the compiled JS
+budo test/main.js --live
