@@ -158,11 +158,11 @@ compile = (program) ->
     bodyStr = body.join(";\n")
     "(function () { #{bodyStr} })()"
   else if _.first(program) == 'get' # (get array 2) -> array[2]
-    "#{program[1]}[#{program[2]}]"
+    "#{program[1]}[#{compile(program[2])}]"
   else if _.first(program) == 'set' # (set array 2 "foo") -> array[2] = "foo"
-    "#{program[1]}[#{program[2]}] = #{program[3]}"
+    "#{program[1]}[#{compile(program[2])}] = #{compile(program[3])}"
   else if _.first(program) == 'var'
-    "var #{program[1]} = (#{compile(program[2])})"
+    "var #{program[1]} = #{compile(program[2])}"
   else if _.first(program) == 'if'
     "(#{compile(program[1])}) ? (#{compile(program[2])}) : (#{compile(program[3])})"
   else if program[0] == 'list'
