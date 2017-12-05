@@ -143,30 +143,6 @@ directJavaScript = (program) ->
     'E': 'Math.E'
     'PI': 'Math.PI'
     'random': 'Math.random'
-    # 'first': '_.first'
-    # 'last': '_.last'
-    # 'rest': '_.rest'
-    # 'tail': '_.tail'
-    # 'take': '_.take'
-    # 'drop': '_.drop'
-    # 'map': '_.map'
-    # 'sort': '_.sort'
-    # 'each': '_.each'
-    # 'filter': '_.filter'
-    # 'reject': '_.reject'
-    # 'reduce': '_.reduce'
-    # 'number?': '_.isNumber'
-    # 'integer?': '_.isInteger'
-    # 'string?': '_.isString'
-    # 'array?': '_.isArray'
-    # 'list?': '_.isArray'
-    # 'empty?': '_.isEmpty'
-    # 'undefined?': '_.isUndefined'
-    # 'nil?': '_.isNil'
-    # 'function?': '_.isFunction'
-    # 'object?': '_.isObject'
-    # 'date?': '_.isDate'
-    # 'nth': '_.nth'
   for key, value of _
     if _.hasOwnProperty(key)
       hareToJs[key] = "_.#{key}"
@@ -181,6 +157,10 @@ compile = (program) ->
     body = _.dropRight(exps).concat("return #{_.last(exps)};")
     bodyStr = body.join(";\n")
     "(function () { #{bodyStr} })()"
+  else if _.first(program) == 'get' # (get array 2) -> array[2]
+    "#{program[1]}[#{program[2]}]"
+  else if _.first(program) == 'set' # (set array 2 "foo") -> array[2] = "foo"
+    "#{program[1]}[#{program[2]}] = #{program[3]}"
   else if _.first(program) == 'var'
     "var #{program[1]} = (#{compile(program[2])})"
   else if _.first(program) == 'if'
