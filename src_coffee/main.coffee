@@ -8,6 +8,21 @@ Parser = require './parser'
 inconsolata = Utils.loadWebFont("Inconsolata")
 lg = console.log
 
+class StorageSaver
+  constructor: () ->
+  save: (program) ->
+    programJSONString = JSON.stringify(program)
+    localStorage.setItem('hare-program', programJSONString)
+
+class StorageLoader
+  constructor: () ->
+  load: () ->
+    programJSONString = localStorage.getItem('hare-program')
+    if _.isString(programJSONString) && (not _.isEmpty(programJSONString))
+      JSON.parse(programJSONString)
+    else
+      []
+
 class SExpression
   constructor: (@tokens, @parent, @program) ->
     @id = _.uniqueId('sexp_')
@@ -294,7 +309,7 @@ getSexp = (sexp, position) ->
 ############################################
 # EDITOR
 class Editor
-  constructor: () ->
+  constructor: (@storageSaver, @storageLoader) ->
     @compiledBox = new TextLayer
       text: 'compiled'
       fontSize: 13
@@ -324,6 +339,8 @@ class Editor
       borderColor: '#000'
       borderWidth: 1
   build: (program) ->
+    if _.isUndefined(program)
+      program = @storageLoader.load()
     if not _.isUndefined(@tokenGroup)
       @tokenGroup.destroy()
     @program = program
@@ -417,6 +434,7 @@ class Editor
         @build(@program)
         @jump(_.clone(pos))
         lg @program
+        @storageSaver.save(@program)
   addAfter: () ->
     sexp = @currentSExp
     if sexp?
@@ -432,6 +450,7 @@ class Editor
           pos[0] += 1
         @jump(pos)
         lg @program
+        @storageSaver.save(@program)
   delete: () ->
     if @currentSExp?
       pos = _.clone(@currentPosition)
@@ -439,6 +458,7 @@ class Editor
       @build(@program)
       pos[0] -= 1 if pos[0] > 0
       @jump(pos)
+      @storageSaver.save(@program)
   replace: () ->
     sexp = @currentSExp
     if sexp?
@@ -452,6 +472,7 @@ class Editor
         @build(@program)
         @jump(_.clone(pos))
         lg @program
+        @storageSaver.save(@program)
   detach: (sexp) ->
     dy = 50
     # @tokenGroup.animate
@@ -490,15 +511,8 @@ class Editor
 #       height: _.max(_.map(layers, (l) -> l.y + l.height - minY))
 #     _.each layers, (l) -> l.parent = this
 
-editor = new Editor
-
-editor.build [
-  'do',
-  ['var', "size", '32'],
-  ['var', "square",
-    ['func', ['x'], ['*', 'x', 'x']]],
-  ['square', 'size']
-]
+editor = new Editor(new StorageSaver(), new StorageLoader())
+editor.build()
 
 key =
   h: 72
