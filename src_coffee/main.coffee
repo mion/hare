@@ -4,6 +4,7 @@
 __ = require './utils'
 beautify = require('js-beautify').js_beautify
 Parser = require './parser'
+Compiler = require './compiler'
 
 inconsolata = Utils.loadWebFont("Inconsolata")
 lg = console.log
@@ -122,70 +123,70 @@ window.evaluate = evaluate
 
 ############################################
 # RENDER
-directJavaScript = (program) ->
-  hareToJs =
-    'round': 'Math.round'
-    'floor': 'Math.floor'
-    'ceiling': 'Math.ceiling'
-    '^': 'Math.pow'
-    'ˆ': 'Math.pow'
-    'sqrt': 'Math.sqrt'
-    'max': 'Math.max'
-    'min': 'Math.min'
-    'cos': 'Math.cos'
-    'sin': 'Math.sin'
-    'tan': 'Math.tan'
-    'acos': 'Math.acos'
-    'asin': 'Math.asin'
-    'atan': 'Math.atan'
-    'log': 'Math.log'
-    'log10': 'Math.log10'
-    'E': 'Math.E'
-    'PI': 'Math.PI'
-    'random': 'Math.random'
-  for key, value of _
-    if _.hasOwnProperty(key)
-      hareToJs[key] = "_.#{key}"
-  js = hareToJs[program]
-  if _.isUndefined(js) then program else js
+# directJavaScript = (program) ->
+#   hareToJs =
+#     'round': 'Math.round'
+#     'floor': 'Math.floor'
+#     'ceiling': 'Math.ceiling'
+#     '^': 'Math.pow'
+#     'ˆ': 'Math.pow'
+#     'sqrt': 'Math.sqrt'
+#     'max': 'Math.max'
+#     'min': 'Math.min'
+#     'cos': 'Math.cos'
+#     'sin': 'Math.sin'
+#     'tan': 'Math.tan'
+#     'acos': 'Math.acos'
+#     'asin': 'Math.asin'
+#     'atan': 'Math.atan'
+#     'log': 'Math.log'
+#     'log10': 'Math.log10'
+#     'E': 'Math.E'
+#     'PI': 'Math.PI'
+#     'random': 'Math.random'
+#   for key, value of _
+#     if _.hasOwnProperty(key)
+#       hareToJs[key] = "_.#{key}"
+#   js = hareToJs[program]
+#   if _.isUndefined(js) then program else js
 
-compile = (program) ->
-  if not _.isArray(program)
-    directJavaScript(program)
-  else if _.first(program) == 'do'
-    exps = _.chain(program).drop(1).map(compile).value()
-    body = _.dropRight(exps).concat("return #{_.last(exps)};")
-    bodyStr = body.join(";\n")
-    "(function () { #{bodyStr} })()"
-  else if _.first(program) == 'get' # (get array 2) -> array[2]
-    "#{program[1]}[#{compile(program[2])}]"
-  else if _.first(program) == 'set' # (set array 2 "foo") -> array[2] = "foo"
-    "#{program[1]}[#{compile(program[2])}] = #{compile(program[3])}"
-  else if _.first(program) == 'var'
-    "var #{program[1]} = #{compile(program[2])}"
-  else if _.first(program) == 'if'
-    "(#{compile(program[1])}) ? (#{compile(program[2])}) : (#{compile(program[3])})"
-  else if program[0] == 'list'
-    ["["] + _.map(program.slice(1), compile).join(", ") + ["]"]
-  else if program[0] == 'func'
-    args = program[1].join(', ')
-    rest = _.chain(program).drop(2).map(compile).value()
-    "function (#{args}) { return #{rest}; }"
-  else if _.includes(Parser.parse('(* + - % < > <= >= = or and)'), program[0])
-    op = if '=' == program[0]
-      '==='
-    else if 'or' == program[0]
-      '||'
-    else if 'and' == program[0]
-      '&&'
-    else
-      program[0]
-    "(#{compile(program[1])}) #{op} (#{compile(program[2])})"
-  else if program[0] == 'not'
-    "!(#{compile(program[1])})"
-  else
-    arglist = _.chain(program).tail().map(compile).value()
-    "#{directJavaScript(program[0])}(#{arglist})"
+# compile = (program) ->
+#   if not _.isArray(program)
+#     directJavaScript(program)
+#   else if _.first(program) == 'do'
+#     exps = _.chain(program).drop(1).map(compile).value()
+#     body = _.dropRight(exps).concat("return #{_.last(exps)};")
+#     bodyStr = body.join(";\n")
+#     "(function () { #{bodyStr} })()"
+#   else if _.first(program) == 'get' # (get array 2) -> array[2]
+#     "#{program[1]}[#{compile(program[2])}]"
+#   else if _.first(program) == 'set' # (set array 2 "foo") -> array[2] = "foo"
+#     "#{program[1]}[#{compile(program[2])}] = #{compile(program[3])}"
+#   else if _.first(program) == 'var'
+#     "var #{program[1]} = #{compile(program[2])}"
+#   else if _.first(program) == 'if'
+#     "(#{compile(program[1])}) ? (#{compile(program[2])}) : (#{compile(program[3])})"
+#   else if program[0] == 'list'
+#     ["["] + _.map(program.slice(1), compile).join(", ") + ["]"]
+#   else if program[0] == 'func'
+#     args = program[1].join(', ')
+#     rest = _.chain(program).drop(2).map(compile).value()
+#     "function (#{args}) { return #{rest}; }"
+#   else if _.includes(Parser.parse('(* + - % < > <= >= = or and)'), program[0])
+#     op = if '=' == program[0]
+#       '==='
+#     else if 'or' == program[0]
+#       '||'
+#     else if 'and' == program[0]
+#       '&&'
+#     else
+#       program[0]
+#     "(#{compile(program[1])}) #{op} (#{compile(program[2])})"
+#   else if program[0] == 'not'
+#     "!(#{compile(program[1])})"
+#   else
+#     arglist = _.chain(program).tail().map(compile).value()
+#     "#{directJavaScript(program[0])}(#{arglist})"
 
 ############################################
 # RENDER
@@ -379,7 +380,7 @@ class Editor
       @retach(@currentSExp)
   compile: () ->
     if @currentSExp?
-      compiledSource = compile(@currentSExp.program)
+      compiledSource = Compiler.compile(@currentSExp.program)
       beautifulSource = beautify(compiledSource, { indent_size: 2 })
       @compiledBox.text = compiledSource
       console.log("[*] INPUT\n", @currentSExp.program)
