@@ -187,14 +187,6 @@ compile = (program) ->
     arglist = _.chain(program).tail().map(compile).value()
     "#{directJavaScript(program[0])}(#{arglist})"
 
-# patterns = [
-#   {hare: '(* @a @b)', js: '(@a) * (@b)'}
-# ]
-# compileRule = (harePat, jsPat) ->
-#   prog = Parser.parse(harePat)
-# compileTo '(* @a @b)', '(@a) * (@b)'
-# compileTo '^', 'Math.pow'
-
 ############################################
 # RENDER
 isAtom = (exp) ->
@@ -455,41 +447,8 @@ class Editor
         @storageSaver.save(@program)
   detach: (sexp) ->
     dy = 50
-    # @tokenGroup.animate
-    #   y: @tokenGroup.y - dy
-    # _.each sexp.tokens, (token) ->
-    #   token.animate
-    #     x: token.x
-    #     y: token.y + dy
   retach: (sexp) ->
     dy = 50
-    # @tokenGroup.animate
-    #   y: @tokenGroup.y + dy
-    # _.each sexp.tokens, (token) ->
-    #   token.animate
-    #     x: token.x
-    #     y: token.y - dy
-
-    # parentOnlyTokens = _.xor(sexp.parent.tokens, sexp.tokens)
-    # _.each parentOnlyTokens, (token) ->
-    #   token.animate
-    #     x: token.x
-    #     y: token.y + dy
-
-    # @tokenGroup.animate
-    #   y: @tokenGroup.y + dy
-
-# class Group extends Layer
-#   constructor: (layers) ->
-#     minX = _.min(_.map(layers, 'x'))
-#     minY = _.min(_.map(layers, 'y'))
-#     super
-#       backgroundColor: 'rgba(255,255,255,0.0)'
-#       x: minX
-#       y: minY
-#       width: _.max(_.map(layers, (l) -> l.x + l.width - minX))
-#       height: _.max(_.map(layers, (l) -> l.y + l.height - minY))
-#     _.each layers, (l) -> l.parent = this
 
 editor = new Editor(new StorageSaver(), new StorageLoader())
 editor.build()
