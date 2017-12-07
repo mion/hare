@@ -101,27 +101,6 @@ class Token extends TextLayer
     @color = @TEXT_COLOR_DESELECTED
 
 ############################################
-# EVALUATE
-# work in progress
-evaluate = (sexp) ->
-  return sexp unless _.isArray(sexp) && sexp.length > 0
-  operator = _.head(sexp)
-  args = _.tail(sexp)
-  if operator is 'quote'
-    if args.length == 1
-      return args[0]
-    else
-      return "ERROR: wrong numbers of arguments"
-  if operator is 'atom'
-    if args.length == 1
-      thing = evaluate(args[0])
-      return if (_.isArray(thing) and _.isEmpty(thing)) or _.isString(thing) then 't' else []
-    else
-      return "ERROR: wrong numbers of arguments"
-
-window.evaluate = evaluate
-
-############################################
 # RENDER
 isAtom = (exp) ->
   _.isString(exp) or _.isNumber(exp) or _.isBoolean(exp)
