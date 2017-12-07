@@ -4,6 +4,12 @@ Hare is a fully integrated development environment.
 
 It merges the concept of a programming language & tools, interpreter, IDE, Git, Agile, DevOps and databases.
 
+# To Do
+
+[x] Extract compiler code into its own file
+[ ] Extract save code into its own file
+[ ] Extract loader code into its own file
+[ ] Redesign the data structures for the editor and rendering
 
 # Upcoming
 
